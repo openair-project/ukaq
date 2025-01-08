@@ -1,0 +1,45 @@
+---
+title: "Importing UK Air Quality Data"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(ukaq)
+```
+
+# Metadata
+
+The first step when importing air quality data is to consult `import_ukaq_meta()`. Let's have a look at the AURN metadata now:
+
+```{r}
+import_ukaq_meta("aurn")
+```
+
+This output can be customised using different function arguments. For example, lets find sites which measured O~3~ in 2020.
+
+```{r}
+meta <- import_ukaq_meta("aurn", year = 2020, by_pollutant = TRUE)
+meta[meta$pollutant == "O3",]
+```
+
+To import data, please make a note of the relevant site codes in the "code" column (and, if appropriate, the "source" network of the data.
+
+# Continuous Monitoring
+
+TBC.
+
+# Monthly & Annual Statistics
+
+TBC.
+
+# Daily Air Quality Index (DAQI)
+
+```{r}
+import_ukaq_daqi(2020)
+```

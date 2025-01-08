@@ -16,7 +16,7 @@ tbl <- function(table, .return) {
 #' Convenient way to load an RData file into R
 #' @param path URL to RData
 #' @noRd
-load_file <- function(path) {
+loadRData <- function(path) {
   # connect to the URL
   connection <- url(path)
 
@@ -30,6 +30,14 @@ load_file <- function(path) {
 
   return(table)
 }
+
+#' @noRd
+loadRDS <- function(x) {
+  con <- url(x)
+  on.exit(close.connection(con))
+  readRDS(con)
+}
+
 
 #' Base R coalesce
 #' @noRd

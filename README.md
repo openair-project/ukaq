@@ -44,7 +44,7 @@ status](https://www.r-pkg.org/badges/version/ukaq)](https://CRAN.R-project.org/p
 - **Access to a myriad of pre-calculated statistics** including daily, monthly, and annual averages, as well as statistics aligned with the UK Daily Air Quality Index.
 
 <div align="center">
-<img src="" width="800">
+<img src="man/figures/feature-banner.png" width="800">
 </div>
 
 <hr>

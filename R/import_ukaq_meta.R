@@ -67,17 +67,15 @@ import_ukaq_meta <-
            .return = NULL) {
     rlang::check_dots_empty()
 
-    networks <- c("aurn", "aqe", "saqn", "waqn", "niaqn", "lmam")
-
     if (any(source == "ukaq")) {
-      source <- networks
+      source <- ukaq_network_names
     } else {
-      source <- rlang::arg_match(source, networks, multiple = TRUE)
+      source <- rlang::arg_match(source, ukaq_network_names, multiple = TRUE)
     }
 
     meta <-
       lapply(source, function(x) {
-        df <- load_file(meta_url(x))
+        df <- loadRData(meta_url(x))
         df$source <- toupper(x)
         if (x != "lmam") {
           df$provider <- df$pcode <- NA_character_
@@ -96,7 +94,8 @@ import_ukaq_meta <-
     # rename columns
     dict <-
       list(
-        "site" = "site_id",
+        "code" = "site_id",
+        "site" = "site_name",
         "site_type" = "location_type",
         "pollutant" = "parameter",
         "lmam_provider" = "provider",
@@ -125,8 +124,8 @@ import_ukaq_meta <-
 
     meta <- meta[, c(
       "source",
+      "code",
       "site",
-      "site_name",
       "site_type",
       "latitude",
       "longitude",
@@ -144,7 +143,7 @@ import_ukaq_meta <-
 
     if (!by_pollutant) {
       newtbl <-
-        do.call(rbind, lapply(split(meta, meta$site_name), function(df) {
+        do.call(rbind, lapply(split(meta, meta$site), function(df) {
           df[1, "start_date"] <- min(df$start_date)
           df[1, "end_date"] <- max(df$end_date)
           df <- df[1, ]
@@ -182,17 +181,15 @@ import_ukaq_pollutants <-
            .return = NULL) {
     rlang::check_dots_empty()
 
-    networks <- c("aurn", "aqe", "saqn", "waqn", "niaqn", "lmam")
-
     if (any(source == "ukaq")) {
-      source <- networks
+      source <- ukaq_network_names
     } else {
-      source <- rlang::arg_match(source, networks, multiple = TRUE)
+      source <- rlang::arg_match(source, ukaq_network_names, multiple = TRUE)
     }
 
     meta <-
       lapply(source, function(x) {
-        df <- load_file(meta_url(x))
+        df <- loadRData(meta_url(x))
         df$source <- toupper(x)
         if (x != "lmam") {
           df$provider <- df$pcode <- NA_character_

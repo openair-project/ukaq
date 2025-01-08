@@ -1,4 +1,10 @@
-url: ~
+url: https://openair-project.github.io/ukaq/
 template:
   package: openairpkgdown
 
+reference:
+- contents:
+  - import_ukaq_meta
+  - import_ukaq_measurements
+  - import_ukaq_statistics
+  - import_ukaq_daqi
