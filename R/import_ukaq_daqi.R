@@ -105,15 +105,38 @@ import_ukaq_daqi <-
     metadata_columns <-
       rlang::arg_match(metadata_columns, metadata_column_names, multiple = TRUE)
 
+    if (any(source == "ukaq")) {
+      source <- ukaq_network_names_nolocal
+    } else {
+      source <- rlang::arg_match(source, ukaq_network_names_nolocal, multiple = TRUE)
+    }
+
     # load daqi data
+    grid <-
+      expand.grid(year = year,
+                  source = source,
+                  stringsAsFactors = FALSE)
+
     daqi <-
-      loadRDS(
-        paste0(
-          "https://uk-air.defra.gov.uk/openair/R_data/annual_DAQI_AURN_",
-          year,
-          ".rds"
+      lapply(1:nrow(grid), function(x) {
+        df <- tryCatch(
+          suppressWarnings(loadRDS(daqi_url(grid$source[x], grid$year[x]))),
+          error = function(e)
+            NULL
         )
-      )
+        if (!is.null(df)) {
+          df$source <- grid$source[x]
+          df <- df[, c("source", names(df)[names(df) != "source"])]
+        }
+        df
+      })
+
+    daqi <- do.call(rbind, daqi)
+
+    # abort if there's no data
+    if (is.null(daqi)) {
+      stop("No data has been returned.")
+    }
 
     # deal with data types & names
     names(daqi) <- tolower(names(daqi))
@@ -187,3 +210,18 @@ import_ukaq_daqi <-
 
     return(tbl(daqi, .return))
   }
+
+daqi_url <- function(source, year) {
+  url <- switch(
+    source,
+    "aurn" = "https://uk-air.defra.gov.uk/openair/R_data/annual_DAQI_AURN_YEAR.rds",
+    "aqe" = "https://airqualityengland.co.uk/assets/openair/R_data/annual_DAQI_AQE_YEAR.rds",
+    "saqn" = "https://www.scottishairquality.scot/openair/R_data/annual_DAQI_SCOT_YEAR.rds",
+    "waqn" = "https://airquality.gov.wales/sites/default/files/openair/R_data/annual_DAQI_WAQ_YEAR.rds",
+    "niaqn" = "https://www.airqualityni.co.uk/openair/R_data/annual_DAQI_NI_YEAR.rds"
+  )
+
+  url <- gsub("YEAR", year, url)
+
+  return(url)
+}

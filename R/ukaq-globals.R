@@ -16,3 +16,6 @@ daqi_pollutant_names <-
 
 ukaq_network_names <-
   c("aurn", "aqe", "saqn", "waqn", "niaqn", "lmam")
+
+ukaq_network_names_nolocal <-
+  ukaq_network_names[ukaq_network_names != "lmam"]
