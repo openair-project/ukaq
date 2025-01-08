@@ -67,40 +67,66 @@ import_ukaq_meta <-
            .return = NULL) {
     rlang::check_dots_empty()
 
-    # read aurn metadata
-    aurn_meta <-
-      load_file("https://uk-air.defra.gov.uk/openair/R_data/AURN_metadata.RData")
-    names(aurn_meta) <- tolower(names(aurn_meta))
+    networks <- c("aurn", "aqe", "saqn", "waqn", "niaqn", "lmam")
+
+    if (any(source == "ukaq")) {
+      source <- networks
+    } else {
+      source <- rlang::arg_match(source, networks, multiple = TRUE)
+    }
+
+    meta <-
+      lapply(source, function(x) {
+        df <- load_file(meta_url(x))
+        df$source <- toupper(x)
+        if (x != "lmam") {
+          df$provider <- df$pcode <- NA_character_
+        }
+        if (x == "lmam") {
+          df$ratified_to <- as.Date(NA, tz = "GMT")
+          df$local_authority <- NA_character_
+        }
+        return(df)
+      })
+
+    meta <- do.call(rbind, meta)
+
+    names(meta) <- tolower(names(meta))
 
     # rename columns
     dict <-
       list(
         "site" = "site_id",
         "site_type" = "location_type",
-        "pollutant" = "parameter"
+        "pollutant" = "parameter",
+        "lmam_provider" = "provider",
+        "lmam_code" = "pcode"
       )
 
     for (i in seq_along(dict)) {
-      names(aurn_meta)[names(aurn_meta) == dict[[i]]] <- names(dict)[[i]]
+      names(meta)[names(meta) == dict[[i]]] <- names(dict)[[i]]
     }
 
     # drop parameter name
-    aurn_meta$parameter_name <- NULL
+    meta$parameter_name <- NULL
 
     # deal with dates
-    aurn_meta$end_date[aurn_meta$end_date == "ongoing"] <- NA
-    aurn_meta$ratified_to[aurn_meta$ratified_to == "Never"] <- NA
-    aurn_meta$start_date <- as.Date(aurn_meta$start_date, tz = "GMT")
-    aurn_meta$end_date <- as.Date(aurn_meta$end_date, tz = "GMT")
-    aurn_meta$ratified_to <-
-      as.Date(aurn_meta$ratified_to, tz = "GMT")
+    meta$end_date[meta$end_date == "ongoing"] <- NA
+    meta$start_date <- as.Date(meta$start_date, tz = "GMT")
+    meta$end_date <- as.Date(meta$end_date, tz = "GMT")
+    if (any(!is.na(meta$ratified_to))) {
+      meta$ratified_to[meta$ratified_to == "Never"] <- NA
+      meta$ratified_to <- as.Date(meta$ratified_to, tz = "GMT")
+    }
 
     # create zagglom column
-    aurn_meta$zagglom <-
-      coalesce(aurn_meta$agglomeration, aurn_meta$zone)
-    aurn_meta <- aurn_meta[, c(
-      "code",
+    meta$zagglom <-
+      coalesce(meta$agglomeration, meta$zone)
+
+    meta <- meta[, c(
+      "source",
       "site",
+      "site_name",
       "site_type",
       "latitude",
       "longitude",
@@ -111,12 +137,14 @@ import_ukaq_meta <-
       "zone",
       "agglomeration",
       "zagglom",
-      "local_authority"
+      "local_authority",
+      "lmam_provider",
+      "lmam_code"
     )]
 
     if (!by_pollutant) {
       newtbl <-
-        do.call(rbind, lapply(split(aurn_meta, aurn_meta$site_name), function(df) {
+        do.call(rbind, lapply(split(meta, meta$site_name), function(df) {
           df[1, "start_date"] <- min(df$start_date)
           df[1, "end_date"] <- max(df$end_date)
           df <- df[1, ]
@@ -126,23 +154,23 @@ import_ukaq_meta <-
 
       # Drop unused columns
       newtbl$pollutant <- newtbl$ratified_to <- NULL
-      aurn_meta <- newtbl
+      meta <- newtbl
     }
 
     if (!anyNA(year)) {
-      aurn_meta$start_year <- as.integer(format(aurn_meta$start_date, "%Y"))
-      aurn_meta$end_year <- as.integer(format(aurn_meta$end_date, "%Y"))
-      aurn_meta$end_year[is.na(aurn_meta$end_year)] <-
+      meta$start_year <- as.integer(format(meta$start_date, "%Y"))
+      meta$end_year <- as.integer(format(meta$end_date, "%Y"))
+      meta$end_year[is.na(meta$end_year)] <-
         as.integer(format(Sys.Date(), "%Y"))
 
-      aurn_meta <-
-        aurn_meta[aurn_meta$start_year <= min(year) &
-                    aurn_meta$end_year >= max(year),]
+      meta <-
+        meta[meta$start_year <= min(year) &
+                    meta$end_year >= max(year),]
 
-      aurn_meta$start_year <- aurn_meta$end_year <- NULL
+      meta$start_year <- meta$end_year <- NULL
     }
 
-    return(tbl(aurn_meta, .return))
+    return(tbl(meta, .return))
   }
 
 #' @rdname import_ukaq_meta
@@ -152,13 +180,45 @@ import_ukaq_pollutants <-
   function(source = "ukaq",
            ...,
            .return = NULL) {
-    aurn_meta <-
-      load_file("https://uk-air.defra.gov.uk/openair/R_data/AURN_metadata.RData")
+    rlang::check_dots_empty()
 
-    meta <- unique(aurn_meta[c("parameter", "Parameter_name")])
+    networks <- c("aurn", "aqe", "saqn", "waqn", "niaqn", "lmam")
 
+    if (any(source == "ukaq")) {
+      source <- networks
+    } else {
+      source <- rlang::arg_match(source, networks, multiple = TRUE)
+    }
+
+    meta <-
+      lapply(source, function(x) {
+        df <- load_file(meta_url(x))
+        df$source <- toupper(x)
+        if (x != "lmam") {
+          df$provider <- df$pcode <- NA_character_
+        }
+        if (x == "lmam") {
+          df$ratified_to <- as.Date(NA, tz = "GMT")
+          df$local_authority <- NA_character_
+        }
+        return(df)
+      })
+
+    meta <- do.call(rbind, meta)
+
+    meta <- unique(meta[c("parameter", "Parameter_name")])
     names(meta) <- c("pollutant", "pollutant_name")
 
     return(tbl(meta, .return))
   }
 
+meta_url <- function(source){
+  switch(source,
+         aurn = "https://uk-air.defra.gov.uk/openair/R_data/AURN_metadata.RData",
+         saqn = "https://www.scottishairquality.scot/openair/R_data/SCOT_metadata.RData",
+         niaqn = "https://www.airqualityni.co.uk/openair/R_data/NI_metadata.RData",
+         waqn = "https://airquality.gov.wales/sites/default/files/openair/R_data/WAQ_metadata.RData",
+         aqe = "https://airqualityengland.co.uk/assets/openair/R_data/AQE_metadata.RData",
+         lmam = "https://uk-air.defra.gov.uk/openair/LMAM/R_data/LMAM_metadata.RData"
+  )
+}
