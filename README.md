@@ -7,7 +7,7 @@
 ### a dependency-free way to access uk air quality data
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/openair-project/ukaq/workflows/R-CMD-check/badge.svg)](https://github.com/openair-project/ukaq/actions)
+[![R-CMD-check](https://github.com/openair-project/ukaq/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/openair-project/ukaq/actions/workflows/R-CMD-check.yaml)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/ukaq)](https://CRAN.R-project.org/package=ukaq)
 <br>
