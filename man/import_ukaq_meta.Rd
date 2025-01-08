@@ -68,6 +68,21 @@ option will return one row per monitoring site \emph{and pollutant}; see
 \code{\link[=import_ukaq_pollutants]{import_ukaq_pollutants()}} for definitions. The \code{"site"} column can be used
 in other functions to import data.
 }
+\details{
+The following metadata columns are returned:
+\itemize{
+\item \strong{source} \emph{\if{html}{\out{<chr>}}}: The network with which the site is associated. Note that some monitoring sites are part of multiple networks (e.g., the AURN & SAQN) so the same site may feature twice under different sources.
+\item \strong{code} \emph{\if{html}{\out{<chr>}}}: The site code, used to import data from specific sites of interest.
+\item \strong{site} \emph{\if{html}{\out{<chr>}}}: The site name, which is more human-readable than the site code.
+\item \strong{site_type} \emph{\if{html}{\out{<chr>}}}: A description of the site environment. Read more at \url{https://uk-air.defra.gov.uk/networks/site-types}.
+\item \strong{latitude} and \strong{longitude} \emph{\if{html}{\out{<num>}}}: The coordinates of the monitoring station, using the World Geodetic System (\url{https://epsg.io/4326}).
+\item \strong{start_date} and \strong{end_date} \emph{\if{html}{\out{<Date>}}}: The opening and closing dates of the monitoring station. If \code{by_pollutant = TRUE}, these dates are instead the first and last dates at which specific pollutants were measured. A missing value, \code{NA}, indicates that monitoring is ongoing.
+\item \strong{ratified_to} \emph{\if{html}{\out{<Date>}}}: The date to which data has been ratified (i.e., 'quality checked'). Data after this date is subject to change.
+\item \strong{zone}, \strong{agglomeration} and \strong{zagglom} \emph{\if{html}{\out{<chr>}}}: The UK is divided into agglomeration zones (large urban areas) and non-agglomeration zones for air quality assessment. The \emph{zagglom} column coalesces the two, listing the agglomeration if the site is located within one and the zone otherwise.
+\item \strong{local_authority} \emph{\if{html}{\out{<chr>}}}: The local authority in which the monitoring station is found.
+\item \strong{lmam_provider} and \strong{lmam_code} \emph{\if{html}{\out{<chr>}}}: The specific provider of the locally managed dataset (e.g., \code{"londonair"}).
+}
+}
 \references{
 With thanks to Trevor Davies and \href{https://www.ricardo.com/en}{Ricardo Plc} for preparing and hosting the data
 }

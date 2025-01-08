@@ -7,6 +7,30 @@
 #' [import_ukaq_pollutants()] for definitions. The `"site"` column can be used
 #' in other functions to import data.
 #'
+#' @details
+#'
+#' The following metadata columns are returned:
+#'
+#' - **source** *<chr>*: The network with which the site is associated. Note that some monitoring sites are part of multiple networks (e.g., the AURN & SAQN) so the same site may feature twice under different sources.
+#'
+#' - **code** *<chr>*: The site code, used to import data from specific sites of interest.
+#'
+#' - **site** *<chr>*: The site name, which is more human-readable than the site code.
+#'
+#' - **site_type** *<chr>*: A description of the site environment. Read more at <https://uk-air.defra.gov.uk/networks/site-types>.
+#'
+#' - **latitude** and **longitude** *<num>*: The coordinates of the monitoring station, using the World Geodetic System (<https://epsg.io/4326>).
+#'
+#' - **start_date** and **end_date** *<Date>*: The opening and closing dates of the monitoring station. If `by_pollutant = TRUE`, these dates are instead the first and last dates at which specific pollutants were measured. A missing value, `NA`, indicates that monitoring is ongoing.
+#'
+#' - **ratified_to** *<Date>*: The date to which data has been ratified (i.e., 'quality checked'). Data after this date is subject to change.
+#'
+#' - **zone**, **agglomeration** and **zagglom** *<chr>*: The UK is divided into agglomeration zones (large urban areas) and non-agglomeration zones for air quality assessment. The *zagglom* column coalesces the two, listing the agglomeration if the site is located within one and the zone otherwise.
+#'
+#' - **local_authority** *<chr>*: The local authority in which the monitoring station is found.
+#'
+#' - **lmam_provider** and **lmam_code** *<chr>*: The specific provider of the locally managed dataset (e.g., `"londonair"`).
+#'
 #' @param source *One or more UK Monitoring networks from which to import
 #'   metadata*
 #'
