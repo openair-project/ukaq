@@ -29,7 +29,7 @@ meta <- import_ukaq_meta("aurn", year = 2020, by_pollutant = TRUE)
 meta[meta$pollutant == "O3",]
 ```
 
-To import data, please make a note of the relevant site codes in the "code" column (and, if appropriate, the "source" network of the data.
+To import data, please make a note of the relevant site codes in the "code" column (and, if appropriate, the "source" network of the data).
 
 # Continuous Monitoring
 
@@ -37,10 +37,15 @@ TBC.
 
 # Monthly & Annual Statistics
 
-TBC.
+```{r}
+import_ukaq_summaries("my1", 2020)
+```
+```{r}
+import_ukaq_summaries("my1", 2020, data_type = "monthly")
+```
 
 # Daily Air Quality Index (DAQI)
 
 ```{r}
-import_ukaq_daqi(2020)
+import_ukaq_daqi("my1", 2020)
 ```

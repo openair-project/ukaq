@@ -49,3 +49,26 @@ coalesce <- function(...) {
   },
   list(...))
 }
+
+#' Replaces "ukaq" with valid source names
+#' @noRd
+match_source <- function(source, network_names) {
+  if (any(source == "ukaq")) {
+    source <- ukaq_network_names_nolocal
+  } else {
+    source <-
+      rlang::arg_match(source, ukaq_network_names_nolocal, multiple = TRUE)
+  }
+  return(source)
+}
+
+#' Reformats all factors columns to character ones
+#' @noRd
+factor_to_char <- function(data) {
+  classes <- sapply(data, class)
+  factor_classes <- classes[classes == "factor"]
+  for (i in names(factor_classes)) {
+    data[[i]] <- as.character(data[[i]])
+  }
+  return(data)
+}

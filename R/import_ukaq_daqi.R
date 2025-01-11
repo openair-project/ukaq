@@ -6,6 +6,15 @@
 #' daily statistic (e.g., daily average for PM10), the index (1:10) and the band
 #' (Low, Moderate, High, or Very High).
 #'
+#' @param code *Specific site codes to import.*
+#'
+#'    **required**
+#'
+#'   `code` expects a vector of character values. It defines the specific sites
+#'   to import will filter the result for specific sites based on their site
+#'   codes, available through [import_ukaq_meta()]. Note that a mismatch between
+#'   `code` and `source` may result in no data being imported.
+#'
 #' @param year *A year, or range of years, from which to import data.*
 #'
 #'    **required**
@@ -14,23 +23,14 @@
 #'   (`2020`), a selection of specific years (c(`2020, 2021, 2022`)), or a range
 #'   of years (`2020:2025`).
 #'
-#' @param code *Specific site codes to import.*
-#'
-#'    *default:* `NA`
-#'
-#'   When importing DAQI data, the default behaviour is for all sites in a given
-#'   network to be imported. Specifying `code` will filter the result for
-#'   specific sites based on their site codes, available through
-#'   [import_ukaq_meta()].
-#'
 #' @param source *One or more UK Monitoring networks from which to import data.*
 #'
-#'   *default:* `"ukaq"`
+#'   *default:* `"aurn"`
 #'
-#'   The default, `"ukaq"`, will import data from the AURN, the four 'devolved'
-#'   networks, and locally managed English monitoring networks. Any combination
-#'   of `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`, and `"niaqn"` will
-#'   *only* import data from those specific monitoring networks. Note that a
+#'   The default, `"aurn"`, will import data from the AURN. Any combination of
+#'   `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`, and `"niaqn"` will
+#'   *only* import data from those specific monitoring networks.
+#'   Alternatively, `"ukaq"` will import data from all five. Note that a
 #'   mismatch between `code` and `source` may result in no data being imported.
 #'
 #' @param pollutant *One or more DAQI pollutants for which to import data.*
@@ -90,9 +90,9 @@
 #'
 #' @export
 import_ukaq_daqi <-
-  function(year,
-           code = NULL,
-           source = "ukaq",
+  function(code,
+           year,
+           source = "aurn",
            pollutant = c("no2", "o3", "pm10", "pm2.5", "so2"),
            append_metadata = FALSE,
            metadata_columns = c("site_type", "latitude", "longitude"),
@@ -101,15 +101,12 @@ import_ukaq_daqi <-
            .return = NULL) {
     pollutant <-
       rlang::arg_match(pollutant, daqi_pollutant_names, multiple = TRUE)
-    pivot <- rlang::arg_match(pivot, c("wide", "long"))
+    pivot <-
+      rlang::arg_match(pivot, c("wide", "long"))
     metadata_columns <-
       rlang::arg_match(metadata_columns, metadata_column_names, multiple = TRUE)
-
-    if (any(source == "ukaq")) {
-      source <- ukaq_network_names_nolocal
-    } else {
-      source <- rlang::arg_match(source, ukaq_network_names_nolocal, multiple = TRUE)
-    }
+    source <-
+      match_source(source = source, network_names = ukaq_network_names_nolocal)
 
     # load daqi data
     grid <-
@@ -120,7 +117,9 @@ import_ukaq_daqi <-
     daqi <-
       lapply(1:nrow(grid), function(x) {
         df <- tryCatch(
-          suppressWarnings(loadRDS(daqi_url(grid$source[x], grid$year[x]))),
+          suppressWarnings(loadRDS(daqi_url(
+            grid$source[x], grid$year[x]
+          ))),
           error = function(e)
             NULL
         )
@@ -141,29 +140,16 @@ import_ukaq_daqi <-
     # deal with data types & names
     names(daqi) <- tolower(names(daqi))
     daqi$date <- as.Date(as.character(daqi$date), tz = "GMT")
-    daqi$code <- as.character(daqi$code)
-    daqi$site <- as.character(daqi$site)
-    daqi$pollutant <- as.character(daqi$pollutant)
-    daqi$measurement_period <- as.character(daqi$measurement_period)
+
+    # remove factors
+    daqi <- factor_to_char(daqi)
 
     # create poll band column
-    daqi$poll_band <- ifelse(
-      daqi$poll_index %in% 1:3,
-      "Low",
-      ifelse(
-        daqi$poll_index %in% 4:6,
-        "Moderate",
-        ifelse(daqi$poll_index %in% 7:9, "High", "Very High")
-      )
-    )
-    daqi$poll_band <- factor(daqi$poll_band, c("Low", "Moderate", "High", "Very High"))
-    daqi <- daqi[, c(names(daqi)[names(daqi) != "measurement_period"], "measurement_period")]
+    daqi <- append_daqi_bands(daqi)
 
     # filter for site/pollutant
-    daqi <- daqi[daqi$pollutant %in% pollutant, ]
-    if (!is.null(code)) {
-      daqi <- daqi[daqi$code %in% code, ]
-    }
+    daqi <- daqi[tolower(daqi$pollutant) %in% tolower(pollutant),]
+    daqi <- daqi[tolower(daqi$code) %in% tolower(code),]
 
     # pivot, if required
     if (pivot == "wide") {
@@ -172,7 +158,7 @@ import_ukaq_daqi <-
       names(daqi)[names(daqi) == "poll_band"] <- "band"
 
       daqi <-
-        reshape(
+        stats::reshape(
           as.data.frame(daqi)[c("date",
                                 "code",
                                 "site",
@@ -189,7 +175,8 @@ import_ukaq_daqi <-
 
       names(daqi) <- gsub("value_", "", names(daqi))
 
-      grid <- expand.grid(a = c("index", "band"), b = daqi_pollutant_names)
+      grid <-
+        expand.grid(a = c("index", "band"), b = daqi_pollutant_names)
       old <- paste(grid$a, grid$b, sep = "_")
       new <- paste(grid$b, grid$a, sep = "_")
 
@@ -200,17 +187,17 @@ import_ukaq_daqi <-
 
     # append metadata, if requested
     if (append_metadata) {
-      daqi$source <- "AURN"
-      meta <- import_ukaq_meta(source = source, by_pollutant = FALSE)
-      meta <- meta[c(metadata_columns, "code", "source")]
-      daqi <- merge(daqi, meta, by = c("code", "source"))
+      daqi <-
+        append_metadata_cols(daqi, source = source, metadata_columns = metadata_columns)
     }
 
-    daqi <- daqi[order(daqi$site, daqi$date), ]
+    daqi <- daqi[order(daqi$site, daqi$date),]
 
     return(tbl(daqi, .return))
   }
 
+#' Format DAQI URL using source/year
+#' @noRd
 daqi_url <- function(source, year) {
   url <- switch(
     source,
@@ -224,4 +211,34 @@ daqi_url <- function(source, year) {
   url <- gsub("YEAR", year, url)
 
   return(url)
+}
+
+#' Add DAQI bands column before "measurement_period" col
+#' @noRd
+append_daqi_bands <- function(data) {
+  data$poll_band <- ifelse(
+    data$poll_index %in% 1:3,
+    "Low",
+    ifelse(
+      data$poll_index %in% 4:6,
+      "Moderate",
+      ifelse(data$poll_index %in% 7:9, "High", "Very High")
+    )
+  )
+  data$poll_band <-
+    factor(data$poll_band, c("Low", "Moderate", "High", "Very High"))
+
+  data <-
+    data[, c(names(data)[names(data) != "measurement_period"], "measurement_period")]
+
+  return(data)
+}
+
+#' Add Metadata cols
+#' @noRd
+append_metadata_cols <- function(data, source, metadata_columns) {
+  meta <- import_ukaq_meta(source = source, by_pollutant = FALSE)
+  meta <- meta[c(metadata_columns, "code", "source")]
+  data <- merge(data, meta, by = c("code", "source"))
+  return(data)
 }

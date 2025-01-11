@@ -91,27 +91,10 @@ import_ukaq_meta <-
            .return = NULL) {
     rlang::check_dots_empty()
 
-    if (any(source == "ukaq")) {
-      source <- ukaq_network_names
-    } else {
-      source <- rlang::arg_match(source, ukaq_network_names, multiple = TRUE)
-    }
+    source <-
+      match_source(source = source, network_names = ukaq_network_names)
 
-    meta <-
-      lapply(source, function(x) {
-        df <- loadRData(meta_url(x))
-        df$source <- toupper(x)
-        if (x != "lmam") {
-          df$provider <- df$pcode <- NA_character_
-        }
-        if (x == "lmam") {
-          df$ratified_to <- as.Date(NA, tz = "GMT")
-          df$local_authority <- NA_character_
-        }
-        return(df)
-      })
-
-    meta <- do.call(rbind, meta)
+    meta <- importMeta(source)
 
     names(meta) <- tolower(names(meta))
 
@@ -205,27 +188,10 @@ import_ukaq_pollutants <-
            .return = NULL) {
     rlang::check_dots_empty()
 
-    if (any(source == "ukaq")) {
-      source <- ukaq_network_names
-    } else {
-      source <- rlang::arg_match(source, ukaq_network_names, multiple = TRUE)
-    }
+    source <-
+      match_source(source = source, network_names = ukaq_network_names)
 
-    meta <-
-      lapply(source, function(x) {
-        df <- loadRData(meta_url(x))
-        df$source <- toupper(x)
-        if (x != "lmam") {
-          df$provider <- df$pcode <- NA_character_
-        }
-        if (x == "lmam") {
-          df$ratified_to <- as.Date(NA, tz = "GMT")
-          df$local_authority <- NA_character_
-        }
-        return(df)
-      })
-
-    meta <- do.call(rbind, meta)
+    meta <- importMeta(source)
 
     meta <- unique(meta[c("parameter", "Parameter_name")])
     names(meta) <- c("pollutant", "pollutant_name")
@@ -242,4 +208,28 @@ meta_url <- function(source){
          aqe = "https://airqualityengland.co.uk/assets/openair/R_data/AQE_metadata.RData",
          lmam = "https://uk-air.defra.gov.uk/openair/LMAM/R_data/LMAM_metadata.RData"
   )
+}
+
+#' Import metadata from RData
+#' @noRd
+importMeta <- function(source) {
+  meta <-
+    lapply(source, function(x) {
+      df <- loadRData(meta_url(x))
+      df$source <- tolower(x)
+      if (x != "lmam") {
+        df$provider <- df$pcode <- NA_character_
+      }
+      if (x == "lmam") {
+        df$ratified_to <- as.Date(NA, tz = "GMT")
+        df$local_authority <- NA_character_
+      }
+      return(df)
+    })
+
+  meta <- do.call(rbind, meta)
+
+  meta$parameter <- gsub("noxasno2", "nox", tolower(meta$parameter))
+
+  return(meta)
 }
