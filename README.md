@@ -1,7 +1,7 @@
 
 <div align="center">
 
-<img src="" height="200"/>
+<img src="man/figures/logo.png" height="200"/>
 
 ## **ukaq**
 ### a dependency-free way to access uk air quality data
