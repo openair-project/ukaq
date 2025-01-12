@@ -199,6 +199,8 @@ import_ukaq_pollutants <-
     return(tbl(meta, .return))
   }
 
+#' Format metadata URL
+#' @noRd
 meta_url <- function(source){
   switch(source,
          aurn = "https://uk-air.defra.gov.uk/openair/R_data/AURN_metadata.RData",

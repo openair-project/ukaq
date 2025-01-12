@@ -6,6 +6,8 @@
 \alias{ukaq-package}
 \title{ukaq: Access UK Air Quality Monitoring Data}
 \description{
+\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+
 Importer for a myriad of United Kingdom air quality data, including monitoring station metadata, hourly measured concentrations, and pre-calculated statistics.
 }
 \author{
