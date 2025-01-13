@@ -1,6 +1,13 @@
 test_that("'ukaq' gets subbed correctly", {
-  expect_equal(match_source("ukaq", ukaq_network_names),
-               c("aurn", "aqe", "saqn", "waqn", "niaqn"))
+  expect_equal(
+    match_source("ukaq", ukaq_network_names),
+    c("aurn", "aqe", "saqn", "waqn", "niaqn", "lmam")
+  )
+
+  expect_equal(
+    match_source("ukaq", ukaq_network_names_nolocal),
+    c("aurn", "aqe", "saqn", "waqn", "niaqn")
+  )
 
   expect_equal(match_source("aurn", ukaq_network_names),
                c("aurn"))
