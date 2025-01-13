@@ -160,6 +160,7 @@ formatMeta <- function(meta,
   meta$zagglom <-
     coalesce(meta$agglomeration, meta$zone)
 
+  # relocate columns
   meta <- meta[, c(
     "source",
     "code",
@@ -179,6 +180,7 @@ formatMeta <- function(meta,
     "lmam_code"
   )]
 
+  # summarise if not by pollutant
   if (!by_pollutant) {
     newtbl <-
       do.call(rbind, lapply(split(meta, meta$site), function(df) {
@@ -194,6 +196,7 @@ formatMeta <- function(meta,
     meta <- newtbl
   }
 
+  # filter if year provided
   if (!anyNA(year)) {
     meta$start_year <- as.integer(format(meta$start_date, "%Y"))
     meta$end_year <- as.integer(format(meta$end_date, "%Y"))
@@ -207,6 +210,10 @@ formatMeta <- function(meta,
     meta$start_year <- meta$end_year <- NULL
   }
 
+  # replace
+  meta$site_type <- sub("unknown unknown", "Unknown", meta$site_type)
+
+  # return
   return(meta)
 }
 

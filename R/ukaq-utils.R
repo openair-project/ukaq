@@ -54,10 +54,10 @@ coalesce <- function(...) {
 #' @noRd
 match_source <- function(source, network_names) {
   if (any(source == "ukaq")) {
-    source <- ukaq_network_names_nolocal
+    source <- network_names
   } else {
     source <-
-      rlang::arg_match(source, ukaq_network_names_nolocal, multiple = TRUE)
+      rlang::arg_match(source, network_names, multiple = TRUE)
   }
   return(source)
 }
