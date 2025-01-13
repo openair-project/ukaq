@@ -108,93 +108,129 @@ import_ukaq_daqi <-
     source <-
       match_source(source = source, network_names = ukaq_network_names_nolocal)
 
-    # load daqi data
-    grid <-
-      expand.grid(year = year,
-                  source = source,
-                  stringsAsFactors = FALSE)
+    # import data
+    daqi <- importDAQI(year = year, source = source)
 
+    # format
     daqi <-
-      lapply(1:nrow(grid), function(x) {
-        df <- tryCatch(
-          suppressWarnings(loadRDS(daqi_url(
-            grid$source[x], grid$year[x]
-          ))),
-          error = function(e)
-            NULL
-        )
-        if (!is.null(df)) {
-          df$source <- grid$source[x]
-          df <- df[, c("source", names(df)[names(df) != "source"])]
-        }
-        df
-      })
-
-    daqi <- do.call(rbind, daqi)
-
-    # abort if there's no data
-    if (is.null(daqi)) {
-      stop("No data has been returned.")
-    }
-
-    # deal with data types & names
-    names(daqi) <- tolower(names(daqi))
-    daqi$date <- as.Date(as.character(daqi$date), tz = "GMT")
-
-    # remove factors
-    daqi <- factor_to_char(daqi)
-
-    # create poll band column
-    daqi <- append_daqi_bands(daqi)
-
-    # filter for site/pollutant
-    daqi <- daqi[tolower(daqi$pollutant) %in% tolower(pollutant),]
-    daqi <- daqi[tolower(daqi$code) %in% tolower(code),]
-
-    # pivot, if required
-    if (pivot == "wide") {
-      names(daqi)[names(daqi) == "concentration"] <- "value"
-      names(daqi)[names(daqi) == "poll_index"] <- "index"
-      names(daqi)[names(daqi) == "poll_band"] <- "band"
-
-      daqi <-
-        stats::reshape(
-          as.data.frame(daqi)[c("date",
-                                "code",
-                                "site",
-                                "pollutant",
-                                "value",
-                                "index",
-                                "band")],
-          timevar = "pollutant",
-          idvar = c("date", "code", "site"),
-          direction = "wide",
-          v.names = c("value", "index", "band"),
-          sep = "_"
-        )
-
-      names(daqi) <- gsub("value_", "", names(daqi))
-
-      grid <-
-        expand.grid(a = c("index", "band"), b = daqi_pollutant_names)
-      old <- paste(grid$a, grid$b, sep = "_")
-      new <- paste(grid$b, grid$a, sep = "_")
-
-      for (i in seq_along(old)) {
-        names(daqi)[names(daqi) == old[i]] <- new[i]
-      }
-    }
-
-    # append metadata, if requested
-    if (append_metadata) {
-      daqi <-
-        append_metadata_cols(daqi, source = source, metadata_columns = metadata_columns)
-    }
-
-    daqi <- daqi[order(daqi$site, daqi$date),]
+      formatDAQI(
+        daqi = daqi,
+        pollutant = pollutant,
+        code = code,
+        pivot = pivot,
+        append_metadata = append_metadata,
+        metadata_columns = metadata_columns
+      )
 
     return(tbl(daqi, .return))
   }
+
+#' Import DAQI data
+#' @noRd
+importDAQI <- function(year, source){
+  grid <-
+    expand.grid(year = year,
+                source = source,
+                stringsAsFactors = FALSE)
+
+  # load daqi data
+  daqi <-
+    lapply(1:nrow(grid), function(x) {
+      df <- tryCatch(
+        suppressWarnings(loadRDS(daqi_url(
+          grid$source[x], grid$year[x]
+        ))),
+        error = function(e)
+          NULL
+      )
+      if (!is.null(df)) {
+        df$source <- grid$source[x]
+        df <- df[, c("source", names(df)[names(df) != "source"])]
+      }
+      df
+    })
+
+  daqi <- do.call(rbind, daqi)
+
+  # abort if there's no data
+  if (is.null(daqi)) {
+    stop("No data has been returned.")
+  }
+
+  return(daqi)
+}
+
+#' Format DAQI data
+#' @noRd
+formatDAQI <- function(daqi, pollutant, code, pivot, append_metadata, metadata_columns) {
+  # deal with data types & names
+  names(daqi) <- tolower(names(daqi))
+  daqi$date <- as.Date(as.character(daqi$date), tz = "GMT")
+
+  # remove factors
+  daqi <- factor_to_char(daqi)
+
+  # create poll band column
+  daqi <- append_daqi_bands(daqi)
+
+  # filter for site/pollutant
+  daqi <- daqi[tolower(daqi$pollutant) %in% tolower(pollutant),]
+  daqi <- daqi[tolower(daqi$code) %in% tolower(code),]
+
+  # pivot, if required
+  if (pivot == "wide") {
+    daqi <- pivotDAQI(daqi)
+  }
+
+  # append metadata, if requested
+  if (append_metadata) {
+    daqi <-
+      append_metadata_cols(daqi, source = source, metadata_columns = metadata_columns)
+  }
+
+  # order by site/date
+  daqi <- daqi[order(daqi$site, daqi$date),]
+
+  # return
+  return(daqi)
+}
+
+#' Reshape DAQI
+#' @noRd
+pivotDAQI <- function(daqi) {
+  names(daqi)[names(daqi) == "concentration"] <- "value"
+  names(daqi)[names(daqi) == "poll_index"] <- "index"
+  names(daqi)[names(daqi) == "poll_band"] <- "band"
+
+  daqi <-
+    stats::reshape(
+      as.data.frame(daqi)[c("date",
+                            "code",
+                            "site",
+                            "pollutant",
+                            "value",
+                            "index",
+                            "band")],
+      timevar = "pollutant",
+      idvar = c("date", "code", "site"),
+      direction = "wide",
+      v.names = c("value", "index", "band"),
+      sep = "_"
+    )
+
+  names(daqi) <- gsub("value_", "", names(daqi))
+
+  grid <-
+    expand.grid(a = c("index", "band"), b = daqi_pollutant_names)
+  old <- paste(grid$a, grid$b, sep = "_")
+  new <- paste(grid$b, grid$a, sep = "_")
+
+  for (i in seq_along(old)) {
+    names(daqi)[names(daqi) == old[i]] <- new[i]
+  }
+
+  return(daqi)
+}
 
 #' Format DAQI URL using source/year
 #' @noRd

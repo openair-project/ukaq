@@ -96,85 +96,7 @@ import_ukaq_meta <-
 
     meta <- importMeta(source)
 
-    names(meta) <- tolower(names(meta))
-
-    # rename columns
-    dict <-
-      list(
-        "code" = "site_id",
-        "site" = "site_name",
-        "site_type" = "location_type",
-        "pollutant" = "parameter",
-        "lmam_provider" = "provider",
-        "lmam_code" = "pcode"
-      )
-
-    for (i in seq_along(dict)) {
-      names(meta)[names(meta) == dict[[i]]] <- names(dict)[[i]]
-    }
-
-    # drop parameter name
-    meta$parameter_name <- NULL
-
-    # deal with dates
-    meta$end_date[meta$end_date == "ongoing"] <- NA
-    meta$start_date <- as.Date(meta$start_date, tz = "GMT")
-    meta$end_date <- as.Date(meta$end_date, tz = "GMT")
-    if (any(!is.na(meta$ratified_to))) {
-      meta$ratified_to[meta$ratified_to == "Never"] <- NA
-      meta$ratified_to <- as.Date(meta$ratified_to, tz = "GMT")
-    }
-
-    # create zagglom column
-    meta$zagglom <-
-      coalesce(meta$agglomeration, meta$zone)
-
-    meta <- meta[, c(
-      "source",
-      "code",
-      "site",
-      "site_type",
-      "latitude",
-      "longitude",
-      "pollutant",
-      "start_date",
-      "end_date",
-      "ratified_to",
-      "zone",
-      "agglomeration",
-      "zagglom",
-      "local_authority",
-      "lmam_provider",
-      "lmam_code"
-    )]
-
-    if (!by_pollutant) {
-      newtbl <-
-        do.call(rbind, lapply(split(meta, meta$site), function(df) {
-          df[1, "start_date"] <- min(df$start_date)
-          df[1, "end_date"] <- max(df$end_date)
-          df <- df[1, ]
-          df$ratified_to <- df$pollutant <- NULL
-          df
-        }))
-
-      # Drop unused columns
-      newtbl$pollutant <- newtbl$ratified_to <- NULL
-      meta <- newtbl
-    }
-
-    if (!anyNA(year)) {
-      meta$start_year <- as.integer(format(meta$start_date, "%Y"))
-      meta$end_year <- as.integer(format(meta$end_date, "%Y"))
-      meta$end_year[is.na(meta$end_year)] <-
-        as.integer(format(Sys.Date(), "%Y"))
-
-      meta <-
-        meta[meta$start_year <= min(year) &
-                    meta$end_year >= max(year),]
-
-      meta$start_year <- meta$end_year <- NULL
-    }
+    meta <- formatMeta(meta, year = year, by_pollutant = by_pollutant)
 
     return(tbl(meta, .return))
   }
@@ -199,16 +121,107 @@ import_ukaq_pollutants <-
     return(tbl(meta, .return))
   }
 
+
+#' Format raw metadata
+#' @noRd
+formatMeta <- function(meta,
+                       year = year,
+                       by_pollutant = by_pollutant) {
+  names(meta) <- tolower(names(meta))
+
+  # rename columns
+  dict <-
+    list(
+      "code" = "site_id",
+      "site" = "site_name",
+      "site_type" = "location_type",
+      "pollutant" = "parameter",
+      "lmam_provider" = "provider",
+      "lmam_code" = "pcode"
+    )
+
+  for (i in seq_along(dict)) {
+    names(meta)[names(meta) == dict[[i]]] <- names(dict)[[i]]
+  }
+
+  # drop parameter name
+  meta$parameter_name <- NULL
+
+  # deal with dates
+  meta$end_date[meta$end_date == "ongoing"] <- NA
+  meta$start_date <- as.Date(meta$start_date, tz = "GMT")
+  meta$end_date <- as.Date(meta$end_date, tz = "GMT")
+  if (any(!is.na(meta$ratified_to))) {
+    meta$ratified_to[meta$ratified_to == "Never"] <- NA
+    meta$ratified_to <- as.Date(meta$ratified_to, tz = "GMT")
+  }
+
+  # create zagglom column
+  meta$zagglom <-
+    coalesce(meta$agglomeration, meta$zone)
+
+  meta <- meta[, c(
+    "source",
+    "code",
+    "site",
+    "site_type",
+    "latitude",
+    "longitude",
+    "pollutant",
+    "start_date",
+    "end_date",
+    "ratified_to",
+    "zone",
+    "agglomeration",
+    "zagglom",
+    "local_authority",
+    "lmam_provider",
+    "lmam_code"
+  )]
+
+  if (!by_pollutant) {
+    newtbl <-
+      do.call(rbind, lapply(split(meta, meta$site), function(df) {
+        df[1, "start_date"] <- min(df$start_date)
+        df[1, "end_date"] <- max(df$end_date)
+        df <- df[1, ]
+        df$ratified_to <- df$pollutant <- NULL
+        df
+      }))
+
+    # Drop unused columns
+    newtbl$pollutant <- newtbl$ratified_to <- NULL
+    meta <- newtbl
+  }
+
+  if (!anyNA(year)) {
+    meta$start_year <- as.integer(format(meta$start_date, "%Y"))
+    meta$end_year <- as.integer(format(meta$end_date, "%Y"))
+    meta$end_year[is.na(meta$end_year)] <-
+      as.integer(format(Sys.Date(), "%Y"))
+
+    meta <-
+      meta[meta$start_year <= min(year) &
+             meta$end_year >= max(year),]
+
+    meta$start_year <- meta$end_year <- NULL
+  }
+
+  return(meta)
+}
+
+
 #' Format metadata URL
 #' @noRd
-meta_url <- function(source){
-  switch(source,
-         aurn = "https://uk-air.defra.gov.uk/openair/R_data/AURN_metadata.RData",
-         saqn = "https://www.scottishairquality.scot/openair/R_data/SCOT_metadata.RData",
-         niaqn = "https://www.airqualityni.co.uk/openair/R_data/NI_metadata.RData",
-         waqn = "https://airquality.gov.wales/sites/default/files/openair/R_data/WAQ_metadata.RData",
-         aqe = "https://airqualityengland.co.uk/assets/openair/R_data/AQE_metadata.RData",
-         lmam = "https://uk-air.defra.gov.uk/openair/LMAM/R_data/LMAM_metadata.RData"
+meta_url <- function(source) {
+  switch(
+    source,
+    aurn = "https://uk-air.defra.gov.uk/openair/R_data/AURN_metadata.RData",
+    saqn = "https://www.scottishairquality.scot/openair/R_data/SCOT_metadata.RData",
+    niaqn = "https://www.airqualityni.co.uk/openair/R_data/NI_metadata.RData",
+    waqn = "https://airquality.gov.wales/sites/default/files/openair/R_data/WAQ_metadata.RData",
+    aqe = "https://airqualityengland.co.uk/assets/openair/R_data/AQE_metadata.RData",
+    lmam = "https://uk-air.defra.gov.uk/openair/LMAM/R_data/LMAM_metadata.RData"
   )
 }
 
