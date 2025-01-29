@@ -9,3 +9,4 @@ reference:
   - import_ukaq_measurements
   - import_ukaq_summaries
   - import_ukaq_daqi
+  - palette_daqi
