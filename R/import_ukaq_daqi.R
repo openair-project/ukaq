@@ -76,7 +76,7 @@ import_ukaq_daqi <-
 
 #' Import DAQI data
 #' @noRd
-importDAQI <- function(year, source){
+importDAQI <- function(year, source) {
   grid <-
     expand.grid(year = year,
                 source = source,
@@ -111,7 +111,12 @@ importDAQI <- function(year, source){
 
 #' Format DAQI data
 #' @noRd
-formatDAQI <- function(daqi, pollutant, code, pivot, append_metadata, metadata_columns) {
+formatDAQI <- function(daqi,
+                       pollutant,
+                       code,
+                       pivot,
+                       append_metadata,
+                       metadata_columns) {
   # deal with data types & names
   names(daqi) <- tolower(names(daqi))
   daqi$date <- as.Date(as.character(daqi$date), tz = "GMT")
@@ -124,11 +129,11 @@ formatDAQI <- function(daqi, pollutant, code, pivot, append_metadata, metadata_c
 
   # filter for site/pollutant
   if (!is.null(pollutant)) {
-    daqi <- daqi[tolower(daqi$pollutant) %in% tolower(pollutant),]
+    daqi <- daqi[tolower(daqi$pollutant) %in% tolower(pollutant), ]
   }
 
   if (!is.null(code)) {
-    daqi <- daqi[tolower(daqi$code) %in% tolower(code),]
+    daqi <- daqi[tolower(daqi$code) %in% tolower(code), ]
   }
 
   # pivot, if required
@@ -143,7 +148,7 @@ formatDAQI <- function(daqi, pollutant, code, pivot, append_metadata, metadata_c
   }
 
   # order by site/date
-  daqi <- daqi[order(daqi$site, daqi$date),]
+  daqi <- daqi[order(daqi$site, daqi$date), ]
 
   # return
   return(daqi)
@@ -158,13 +163,7 @@ pivotDAQI <- function(daqi) {
 
   daqi <-
     stats::reshape(
-      as.data.frame(daqi)[c("date",
-                            "code",
-                            "site",
-                            "pollutant",
-                            "value",
-                            "index",
-                            "band")],
+      as.data.frame(daqi)[c("date", "code", "site", "pollutant", "value", "index", "band")],
       timevar = "pollutant",
       idvar = c("date", "code", "site"),
       direction = "wide",
