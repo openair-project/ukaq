@@ -17,6 +17,14 @@ test_that("'ukaq' gets subbed correctly", {
   expect_error(match_source("lmam", ukaq_network_names_nolocal))
 })
 
+test_that("'pivot' is correctly matched", {
+  expect_equal(match_pivot("longer"), "long")
+  expect_equal(match_pivot("long"), "long")
+  expect_equal(match_pivot("wider"), "wide")
+  expect_equal(match_pivot("wide"), "wide")
+  expect_error(match_pivot("anything_else"))
+})
+
 test_that("factor conversions work", {
   testdat <-
     data.frame(
@@ -41,4 +49,9 @@ test_that("table reclassifier works", {
   expect_s3_class(tbl(iris, .class = "tbl"), c("tbl_df", "tbl", "data.frame"))
 
   expect_s3_class(tbl(iris, .class = "df"), c("data.frame"))
+})
+
+test_that("we can bind dataframes with different columns", {
+  newdf <- rbindNames(list(iris, mtcars))
+  expect_equal(names(newdf), c(names(iris), names(mtcars)))
 })

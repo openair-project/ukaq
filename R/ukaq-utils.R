@@ -17,7 +17,7 @@ tbl <- function(table, .class) {
 #' @param path URL to RData
 #' @param object The specific object of interest, if multiple exist
 #' @noRd
-loadRData <- function(path, object) {
+loadRData <- function(path, object) {# nocov start
   # connect to the URL
   connection <- url(path)
 
@@ -53,14 +53,14 @@ loadRData <- function(path, object) {
 
   # return
   return(table)
-}
+} # nocov end
 
 #' @noRd
-loadRDS <- function(x) {
+loadRDS <- function(x) { # nocov start
   con <- url(x)
   on.exit(close.connection(con))
   readRDS(con)
-}
+} # nocov end
 
 
 #' Base R coalesce
@@ -91,8 +91,8 @@ match_source <- function(source, network_names) {
 match_pivot <- function(pivot) {
   if (tolower(pivot) %in% c("wide", "wider")) {
     return("wide")
-  } else if (tolower(pivot) %in% c("wide", "wider")) {
-    return("wide")
+  } else if (tolower(pivot) %in% c("long", "longer")) {
+    return("long")
   } else {
     stop("'pivot' should be one of 'wide' or 'long', not '", pivot, "'.")
   }
