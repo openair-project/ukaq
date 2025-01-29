@@ -61,82 +61,107 @@ import_ukaq_summaries <-
     # import data
     data <- importSummaries(grid = grid, data_type = data_type)
 
-    # drop UKA code
-    names(data) <- tolower(names(data))
-    names(data) <- sub("noxasno2", "nox", names(data))
-    data$uka_code <- NULL
-
-    # format factor cols as characters
-    data <- factor_to_char(data)
-
-    # add extra columns per summary type
-    if (data_type == "annual") {
-      data$date <- as.Date(paste0(data$year, "-01-01"), tz = "GMT")
-      data <-
-        data[, c("source", "date", setdiff(names(data), c("date", "source")))]
-    }
-    if (data_type == "monthly") {
-      data$date <- as.Date(data$date, tz = "GMT")
-      data$year <- as.integer(format(data$date, "%Y"))
-      data$month <- as.integer(format(data$date, "%m"))
-      data$month_label <- factor(format(data$date, "%b"), month.abb)
-      data <-
-        data[, c("source",
-                 "date",
-                 "year",
-                 "month",
-                 "month_label",
-                 setdiff(
-                   names(data),
-                   c("source", "date", "year", "month", "month_label")
-                 ))]
-    }
-
-    # filter for site
-    if (!is.null(code)) {
-      data <- data[tolower(data$code) %in% tolower(code),]
-    }
-
-    # pivot & deal with pollutants
-    # (poll filtering method varies with format)
-    if (pivot == "long") {
-      data <- pivot_summary_longer(data)
-      if (!is.null(pollutant)) {
-        data <- data[tolower(data$pollutant) %in% tolower(pollutant),]
-      }
-    }
-
-    if (pivot == "wide") {
-      if (!is.null(pollutant)) {
-        if (data_type == "monthly") {
-          non_pollutant_cols <-
-            c("source",
-              "date",
-              "year",
-              "month",
-              "month_label",
-              "code",
-              "site")
-        } else {
-          non_pollutant_cols <- c("source", "date", "year", "code", "site")
-        }
-
-        pollutant_cols <-
-          names(data)[grepl(paste(pollutant, collapse = "|"), names(data))]
-
-        data <- data[, c(non_pollutant_cols, pollutant_cols)]
-      }
-    }
-
-    # append metadata, if requested
-    if (append_metadata) {
-      data <-
-        append_metadata_cols(data, source = source, metadata_columns = metadata_columns)
-    }
+    # format data
+    data <- formatSummary(data = data,
+                          code = code,
+                          source = source,
+                          data_type = data_type,
+                          pollutant = pollutant,
+                          append_metadata = append_metadata,
+                          metadata_columns = metadata_columns,
+                          pivot = pivot)
 
     # return
     return(tbl(data, .class))
   }
+
+#' Format AQ Summary Data
+#' @noRd
+formatSummary <- function(data,
+                          code,
+                          source,
+                          data_type,
+                          pollutant,
+                          append_metadata,
+                          metadata_columns,
+                          pivot){
+  # drop UKA code
+  names(data) <- tolower(names(data))
+  names(data) <- sub("noxasno2", "nox", names(data))
+  data$uka_code <- NULL
+
+  # format factor cols as characters
+  data <- factor_to_char(data)
+
+  # add extra columns per summary type
+  if (data_type == "annual") {
+    data$date <- as.Date(paste0(data$year, "-01-01"), tz = "GMT")
+    data <-
+      data[, c("source", "date", setdiff(names(data), c("date", "source")))]
+  }
+  if (data_type == "monthly") {
+    data$date <- as.Date(data$date, tz = "GMT")
+    data$year <- as.integer(format(data$date, "%Y"))
+    data$month <- as.integer(format(data$date, "%m"))
+    data$month_label <- factor(format(data$date, "%b"), month.abb)
+    data <-
+      data[, c("source",
+               "date",
+               "year",
+               "month",
+               "month_label",
+               setdiff(
+                 names(data),
+                 c("source", "date", "year", "month", "month_label")
+               ))]
+  }
+
+  # filter for site
+  if (!is.null(code)) {
+    data <- data[tolower(data$code) %in% tolower(code),]
+  }
+
+  # pivot & deal with pollutants
+  # (poll filtering method varies with format)
+  if (pivot == "long") {
+    data <- pivot_summary_longer(data)
+    if (!is.null(pollutant)) {
+      data <- data[tolower(data$pollutant) %in% tolower(pollutant),]
+    }
+  }
+
+  if (pivot == "wide") {
+    if (!is.null(pollutant)) {
+      if (data_type == "monthly") {
+        non_pollutant_cols <-
+          c("source",
+            "date",
+            "year",
+            "month",
+            "month_label",
+            "code",
+            "site")
+      } else {
+        non_pollutant_cols <- c("source", "date", "year", "code", "site")
+      }
+
+      pollutant_cols <-
+        names(data)[grepl(paste(pollutant, collapse = "|"), names(data))]
+
+      data <- data[, c(non_pollutant_cols, pollutant_cols)]
+    }
+
+    names(data) <- gsub(".mean", "", names(data))
+  }
+
+  # append metadata, if requested
+  if (append_metadata) {
+    data <-
+      append_metadata_cols(data, source = source, metadata_columns = metadata_columns)
+  }
+
+  return(data)
+}
 
 #' Format a summary URL
 #' @noRd
@@ -150,7 +175,8 @@ summary_url <-
       "aqe" = "https://airqualityengland.co.uk/assets/openair/R_data/summary_STAT_AQE_YEAR.rds",
       "saqn" = "https://www.scottishairquality.scot/openair/R_data/summary_STAT_SCOT_YEAR.rds",
       "waqn" = "https://airquality.gov.wales/sites/default/files/openair/R_data/summary_STAT_WAQ_YEAR.rds",
-      "niaqn" = "https://www.airqualityni.co.uk/openair/R_data/summary_STAT_NI_YEAR.rds"
+      "niaqn" = "https://www.airqualityni.co.uk/openair/R_data/summary_STAT_NI_YEAR.rds",
+      "lmam" = "https://uk-air.defra.gov.uk/openair/LMAM/R_data/summary_STAT_LMAM_YEAR.rds"
     )
 
     url <- gsub("YEAR", year, url)
