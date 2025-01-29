@@ -33,18 +33,97 @@ To import data, please make a note of the relevant site codes in the "code" colu
 
 # Continuous Monitoring
 
-TBC.
+Arguably the most useful data made available by `{ukaq}` could be termed 'continuous monitoring data' - most commonly hourly data. To access this, you may use `import_ukaq_measurements()` which requires two key pieces of information - a site `code` from the metadata table and a `year` (or years) to import.
+
+```{r}
+import_ukaq_measurements(c("my1", "kc1"), year = 2024L)
+```
+
+`import_ukaq_measurements()` is clever enough to work out the specific monitoring network each site is a member of, but sometimes there can be ambiguity. The `source` argument allows this to be specified. Consider `source` as defining the pool of one or more networks `{ukaq}` will use to align each `code` with an actual monitoring station. In reality, this should only be an issue with sites that are  Consider the difference between the two outputs below.
+
+```{r}
+import_ukaq_measurements("ad1", year = 2020L)
+
+import_ukaq_measurements("ad1", year = 2020L, source = "lmam")
+```
+
+Data can be augmented with three kinds of extra information to make the functions more useful:
+
+1. `append_meteorology` will add modelled wind speed (`ws`), wind direction (`wd`), and air temperature (`temp`) for networks where it exists. This defaults to `TRUE`.
+
+2. `append_quality_flag` will add a column (or columns) to indicate whether each pollutant has been ratified. This defaults to `FALSE`.
+
+3. `append_metadata` will add the metadata columns defined in `metadata_columns`. This is useful to append information like latitude/longitude for mapping, for example. This defaults to `FALSE`, with chosen metadata being site type, latitude and longitude.
+
+To demonstrate we'll just grab a couple of pollutants from Marylebone Road (`"my1"`) using the `pollutant` argument, to keep the output small. 
+
+```{r}
+import_ukaq_measurements(
+  "my1", 
+  2020L,  
+  pollutant = c("no2", "o3"),
+  append_metadata = TRUE, 
+  append_meteorology = FALSE, 
+  append_quality_flag = TRUE, 
+  metadata_columns = "zagglom"
+)
+```
+
+By default, the data is put into a 'wide' format, with different pollutants in different columns. For many applications in R, we may want the data to be in a "long" format. For this data structure, simply set `pivot = "long"`. Note that this will interact with the other 'append' arguments - meteorological data and site metadata aren't pivoted with the pollutants, and there will only be a single quality flag alongside the 'value' column.
+
+```{r}
+import_ukaq_measurements(
+  "my1",
+  2020L,
+  pivot = "long"
+)
+```
+
+Finally, there are other data types available if they are of interest, which can be used with the `data_type` argument of `import_ukaq_measurements()`. These include:
+
+* `"hourly"`: Hourly data (the default).
+
+* `"daily"`: Daily average data.
+
+* `"15_min"`: 15-minute average SO2 concentrations.
+
+* `"8_hour"`: 8-hour rolling mean concentrations for O3 and CO.
+
+* `"24_hour"`: 24-hour rolling mean concentrations for particulates.
+
+* `"daily_max_8"`: Maximum daily rolling 8-hour maximum for O3 and CO.
+
+On top of these data types, there are three additional `data_type`s that can be accessed through other functions, detailed in the sections below.
 
 # Monthly & Annual Statistics
 
+When examining entire networks, it may be useful to examine aggregated data. `import_ukaq_summaries()` allows for `"monthly"` and `"annual"` data types to be imported. This function works differently to `import_ukaq_measurements()` in a few key ways.
+
+1. A pre-calculated monthly or annual data capture is also returned with the data.
+
+2. `code` is optional (defaulting to `NULL`) which will make the function return all data available for the given `source` and `year`.
+
+Many of the arguments mentioned in the above section are also available for this function, including `pollutant`, `append_metadata`, `metadata_columns`, and `pivot`.
+
 ```{r}
-import_ukaq_summaries("my1", 2020)
+import_ukaq_summaries(year = 2024, source = "aurn")
 ```
+
 ```{r}
-import_ukaq_summaries("my1", 2020, data_type = "monthly")
+import_ukaq_summaries(year = 2024, source = "aurn", pivot = "long")
+```
+
+```{r}
+import_ukaq_summaries("my1", 2020, data_type = "monthly", pivot = "long")
 ```
 
 # Daily Air Quality Index (DAQI)
+
+Pre-calculated Daily Air Quality Indices (the 'DAQI', see <https://uk-air.defra.gov.uk/air-pollution/daqi>) are also available through `import_ukaq_daqi()`. This function is similar to `import_ukaq_summaries()`, with some additional nuances:
+
+1. The default `pivot` is `"long"`. This is due to the amount of data presented - the daily statistic, the corresponding index, the corresponding band, and the measurement period. Not all of this information is carried to the 'wide' format if the alternative is selected.
+
+2. `pollutant` ensures only one of the five DAQI pollutants are given - any combination of NO2, O3, PM10, PM2.5 or SO2.
 
 ```{r}
 import_ukaq_daqi("my1", 2020)

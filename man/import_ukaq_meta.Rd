@@ -10,10 +10,10 @@ import_ukaq_meta(
   year = NA,
   by_pollutant = FALSE,
   ...,
-  .return = NULL
+  .class = NULL
 )
 
-import_ukaq_pollutants(source = "ukaq", ..., .return = NULL)
+import_ukaq_pollutants(source = "ukaq", ..., .class = NULL)
 }
 \arguments{
 \item{source}{\emph{One or more UK Monitoring networks from which to import
@@ -47,13 +47,13 @@ and closing dates of the site as a whole.}
 
 \item{...}{\emph{Not used.}}
 
-\item{.return}{\emph{Signifier for the dataframe class.}
+\item{.class}{\emph{Signifier for the dataframe class.}
 
 \emph{default:} \code{NULL}
 
 \link[=ukaq-package]{ukaq} functions, by default, will return \code{tbl_df}s if the
 \link[tibble:tibble-package]{tibble} package is installed, but will otherwise
-return \code{data.frame}s. \code{.return} can override this behaviour, and takes
+return \code{data.frame}s. \code{.class} can override this behaviour, and takes
 either \code{"tbl"} or \code{"df"}, which sets the return class to be \code{tbl_df} or
 \code{data.frame} respectively.}
 }

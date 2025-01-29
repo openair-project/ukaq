@@ -36,9 +36,9 @@ test_that("factor conversions work", {
 })
 
 test_that("table reclassifier works", {
-  expect_no_error(tbl(iris, .return = NULL))
+  expect_no_error(tbl(iris, .class = NULL))
 
-  expect_s3_class(tbl(iris, .return = "tbl"), c("tbl_df", "tbl", "data.frame"))
+  expect_s3_class(tbl(iris, .class = "tbl"), c("tbl_df", "tbl", "data.frame"))
 
-  expect_s3_class(tbl(iris, .return = "df"), c("data.frame"))
+  expect_s3_class(tbl(iris, .class = "df"), c("data.frame"))
 })

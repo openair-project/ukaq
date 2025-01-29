@@ -6,6 +6,16 @@
 #' monthly/annual data capture and additional relevant columns (e.g., the month
 #' as a character for monthly data).
 #'
+#' @param code *Specific site codes to import.*
+#'
+#'    *default:* `NULL`
+#'
+#'   `code` expects a vector of character values. It defines the specific sites
+#'   to import will filter the result for specific sites based on their site
+#'   codes, available through [import_ukaq_meta()]. Note that a mismatch between
+#'   `code` and `source` may result in no data being imported. If `NULL`, the
+#'   default, all available data for the `year` and `source` will be returned.
+#'
 #' @param data_type *What type of summary should be returned?*
 #'
 #'   *default:* `"annual"`
@@ -13,7 +23,7 @@
 #'   [import_ukaq_summaries()] can return either `"annual"` (the default) or
 #'   `"monthly"` summary data.
 #'
-#' @inheritParams import_ukaq_daqi
+#' @inheritParams import_ukaq_measurements
 #'
 #' @return a `data.frame`
 #'
@@ -24,7 +34,7 @@
 #'
 #' @export
 import_ukaq_summaries <-
-  function(code,
+  function(code = NULL,
            year,
            source = "aurn",
            data_type = "annual",
@@ -33,9 +43,8 @@ import_ukaq_summaries <-
            metadata_columns = c("site_type", "latitude", "longitude"),
            pivot = "wide",
            ...,
-           .return = NULL) {
-    pivot <-
-      rlang::arg_match(pivot, c("wide", "long"))
+           .class = NULL) {
+    pivot <- match_pivot(pivot)
     metadata_columns <-
       rlang::arg_match(metadata_columns, metadata_column_names, multiple = TRUE)
     source <-
@@ -84,7 +93,9 @@ import_ukaq_summaries <-
     }
 
     # filter for site
-    data <- data[tolower(data$code) %in% tolower(code),]
+    if (!is.null(code)) {
+      data <- data[tolower(data$code) %in% tolower(code),]
+    }
 
     # pivot & deal with pollutants
     # (poll filtering method varies with format)
@@ -124,7 +135,7 @@ import_ukaq_summaries <-
     }
 
     # return
-    return(tbl(data, .return))
+    return(tbl(data, .class))
   }
 
 #' Format a summary URL

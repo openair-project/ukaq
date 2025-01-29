@@ -5,6 +5,7 @@ template:
 reference:
 - contents:
   - import_ukaq_meta
+  - import_ukaq_pollutants
   - import_ukaq_measurements
-  - import_ukaq_statistics
+  - import_ukaq_summaries
   - import_ukaq_daqi

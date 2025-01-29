@@ -5,7 +5,7 @@
 \title{Import Monthly and Annual Summaries of UK Air Quality Data}
 \usage{
 import_ukaq_summaries(
-  code,
+  code = NULL,
   year,
   source = "aurn",
   data_type = "annual",
@@ -14,18 +14,19 @@ import_ukaq_summaries(
   metadata_columns = c("site_type", "latitude", "longitude"),
   pivot = "wide",
   ...,
-  .return = NULL
+  .class = NULL
 )
 }
 \arguments{
 \item{code}{\emph{Specific site codes to import.}
 
-\strong{required}
+\emph{default:} \code{NULL}
 
 \code{code} expects a vector of character values. It defines the specific sites
 to import will filter the result for specific sites based on their site
 codes, available through \code{\link[=import_ukaq_meta]{import_ukaq_meta()}}. Note that a mismatch between
-\code{code} and \code{source} may result in no data being imported.}
+\code{code} and \code{source} may result in no data being imported. If \code{NULL}, the
+default, all available data for the \code{year} and \code{source} will be returned.}
 
 \item{year}{\emph{A year, or range of years, from which to import data.}
 
@@ -37,13 +38,13 @@ of years (\code{2020:2025}).}
 
 \item{source}{\emph{One or more UK Monitoring networks from which to import data.}
 
-\emph{default:} \code{"aurn"}
+\emph{default:} \code{"ukaq"}
 
-The default, \code{"aurn"}, will import data from the AURN. Any combination of
-\code{"aurn"}, \code{"aqe"}, \code{"saqn"}, \code{"waqn"}, and \code{"niaqn"} will
-\emph{only} import data from those specific monitoring networks.
-Alternatively, \code{"ukaq"} will import data from all five. Note that a
-mismatch between \code{code} and \code{source} may result in no data being imported.}
+The default, \code{"ukaq"}, will look for sites from any of the available
+networks. Any combination of \code{"aurn"}, \code{"aqe"}, \code{"saqn"}, \code{"waqn"},
+\code{"niaqn"} or \code{"lmam"} will \emph{only} import data from those specific
+monitoring networks. Note that a mismatch between \code{code} and \code{source} may
+result in no data being imported.}
 
 \item{data_type}{\emph{What type of summary should be returned?}
 
@@ -52,13 +53,12 @@ mismatch between \code{code} and \code{source} may result in no data being impor
 \code{\link[=import_ukaq_summaries]{import_ukaq_summaries()}} can return either \code{"annual"} (the default) or
 \code{"monthly"} summary data.}
 
-\item{pollutant}{\emph{One or more DAQI pollutants for which to import data.}
+\item{pollutant}{\emph{One or more pollutants for which to import data.}
 
-\emph{default:} no2, o3, pm10, pm2.5, so2
+\emph{default:} \code{NULL}
 
-By default, all 5 DAQI pollutants are
-imported by \code{\link[=import_ukaq_daqi]{import_ukaq_daqi()}}. \code{pollutant} allows any specific
-combination of the DAQI pollutants to be returned instead.}
+By default, all available pollutants are imported. \code{pollutant} allows any
+specific combination of the pollutants to be returned instead.}
 
 \item{append_metadata}{\emph{Append site metadata to the dataframe?}
 
@@ -78,7 +78,7 @@ excluding pollutant-specific columns (e.g., ratification date).}
 
 \item{pivot}{\emph{Should the dataframe be 'wide' or 'long'?}
 
-\emph{default:} \code{"long"}
+\emph{default:} \code{"wide"}
 
 There are two main ways to store air quality data; "long" (with 'pollutant'
 and 'value' columns) or "wide" (with each pollutant value being stored in
@@ -87,13 +87,13 @@ prefer their data in.}
 
 \item{...}{\emph{Not used.}}
 
-\item{.return}{\emph{Signifier for the dataframe class.}
+\item{.class}{\emph{Signifier for the dataframe class.}
 
 \emph{default:} \code{NULL}
 
 \link[=ukaq-package]{ukaq} functions, by default, will return \code{tbl_df}s if the
 \link[tibble:tibble-package]{tibble} package is installed, but will otherwise
-return \code{data.frame}s. \code{.return} can override this behaviour, and takes
+return \code{data.frame}s. \code{.class} can override this behaviour, and takes
 either \code{"tbl"} or \code{"df"}, which sets the return class to be \code{tbl_df} or
 \code{data.frame} respectively.}
 }

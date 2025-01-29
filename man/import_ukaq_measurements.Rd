@@ -2,10 +2,139 @@
 % Please edit documentation in R/import_ukaq_measurements.R
 \name{import_ukaq_measurements}
 \alias{import_ukaq_measurements}
-\title{Import Continuous UK Air Quality Data Monitoring Data}
+\title{Import Continuous UK Air Quality Monitoring Data}
 \usage{
-import_ukaq_measurements()
+import_ukaq_measurements(
+  code,
+  year,
+  source = "ukaq",
+  data_type = "hourly",
+  pollutant = NULL,
+  append_meteorology = TRUE,
+  append_quality_flag = FALSE,
+  append_metadata = FALSE,
+  metadata_columns = c("site_type", "latitude", "longitude"),
+  pivot = "wide",
+  ...,
+  .class = NULL
+)
+}
+\arguments{
+\item{code}{\emph{Specific site codes to import.}
+
+\strong{required}
+
+\code{code} expects a vector of character values. It defines the specific sites
+to import will filter the result for specific sites based on their site
+codes, available through \code{\link[=import_ukaq_meta]{import_ukaq_meta()}}. Note that a mismatch between
+\code{code} and \code{source} may result in no data being imported.}
+
+\item{year}{\emph{A year, or range of years, from which to import data.}
+
+\strong{required}
+
+\code{year} expects a vector of integer values. It can be a single year
+(\code{2020}), a selection of specific years (c(\verb{2020, 2021, 2022})), or a range
+of years (\code{2020:2025}).}
+
+\item{source}{\emph{One or more UK Monitoring networks from which to import data.}
+
+\emph{default:} \code{"ukaq"}
+
+The default, \code{"ukaq"}, will look for sites from any of the available
+networks. Any combination of \code{"aurn"}, \code{"aqe"}, \code{"saqn"}, \code{"waqn"},
+\code{"niaqn"} or \code{"lmam"} will \emph{only} import data from those specific
+monitoring networks. Note that a mismatch between \code{code} and \code{source} may
+result in no data being imported.}
+
+\item{data_type}{\emph{What type of summary should be returned?}
+
+\emph{default:} \code{"hourly"}
+
+\code{\link[=import_ukaq_measurements]{import_ukaq_measurements()}} can return many different continuous
+measurement types. These are as follows:
+\itemize{
+\item \code{"hourly"}: Hourly data (the default).
+\item \code{"daily"}: Daily average data.
+\item \code{"15_min"}: 15-minute average SO2 concentrations.
+\item \code{"8_hour"}: 8-hour rolling mean concentrations for O3 and CO.
+\item \code{"24_hour"}: 24-hour rolling mean concentrations for particulates.
+\item \code{"daily_max_8"}: Maximum daily rolling 8-hour maximum for O3 and CO.
+}}
+
+\item{pollutant}{\emph{One or more pollutants for which to import data.}
+
+\emph{default:} \code{NULL}
+
+By default, all available pollutants are imported. \code{pollutant} allows any
+specific combination of the pollutants to be returned instead.}
+
+\item{append_meteorology}{\emph{Append modelled meteorology to the dataframe?}
+
+\emph{default:} \code{TRUE}
+
+Certain networks such as the AURN are accompanied by modelled
+meteorological data obtained from the WRF model (See
+\url{https://uk-air.defra.gov.uk/research/air-quality-modelling?view=modelling}).
+Setting \code{append_meteorology = FALSE} will remove this, which may be useful
+if joining measured meteorological data sourced from elsewhere.}
+
+\item{append_quality_flag}{\emph{Append ratification indicators to the dataframe?}
+
+\emph{default:} \code{FALSE}
+
+If \code{TRUE}, additional \verb{_qc} columns will be appended to the data which are
+\code{TRUE} if the data has been ratified and \code{FALSE} if it has not been.
+Specific ratification dates can be obtained from \code{\link[=import_ukaq_meta]{import_ukaq_meta()}}.}
+
+\item{append_metadata}{\emph{Append site metadata to the dataframe?}
+
+\emph{default:} \code{FALSE}
+
+When \code{TRUE}, the resulting \code{data.frame} will have site metadata appended.
+The specific columns are selected using \code{metadata_columns}.}
+
+\item{metadata_columns}{\emph{Specific metadata columns to append to the
+data.frame.}
+
+\emph{default:} \code{c("site_type", "latitude", "longitude")}
+
+When \code{append_metadata = TRUE}, the columns selected here will be appended
+to the data. Columns names should match those in \code{\link[=import_ukaq_meta]{import_ukaq_meta()}},
+excluding pollutant-specific columns (e.g., ratification date).}
+
+\item{pivot}{\emph{Should the dataframe be 'wide' or 'long'?}
+
+\emph{default:} \code{"wide"}
+
+There are two main ways to store air quality data; "long" (with 'pollutant'
+and 'value' columns) or "wide" (with each pollutant value being stored in
+its own column). \code{pivot} allows users to define which format they would
+prefer their data in.}
+
+\item{...}{\emph{Not used.}}
+
+\item{.class}{\emph{Signifier for the dataframe class.}
+
+\emph{default:} \code{NULL}
+
+\link[=ukaq-package]{ukaq} functions, by default, will return \code{tbl_df}s if the
+\link[tibble:tibble-package]{tibble} package is installed, but will otherwise
+return \code{data.frame}s. \code{.class} can override this behaviour, and takes
+either \code{"tbl"} or \code{"df"}, which sets the return class to be \code{tbl_df} or
+\code{data.frame} respectively.}
+}
+\value{
+a \code{data.frame}
 }
 \description{
-Import Continuous UK Air Quality Data Monitoring Data
+Imports continuous monitoring data from UK air quality networks. This
+function defaults to importing hourly data, but has options to instead return
+other common time periods.
+}
+\references{
+With thanks to Trevor Davies and \href{https://www.ricardo.com/en}{Ricardo Plc} for preparing and hosting the data
+}
+\author{
+Jack Davison, David Carslaw
 }

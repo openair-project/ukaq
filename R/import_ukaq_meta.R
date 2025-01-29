@@ -62,13 +62,13 @@
 #'
 #' @param ... *Not used.*
 #'
-#' @param .return *Signifier for the dataframe class.*
+#' @param .class *Signifier for the dataframe class.*
 #'
 #'    *default:* `NULL`
 #'
 #'   [ukaq][ukaq-package] functions, by default, will return `tbl_df`s if the
 #'   [tibble][tibble::tibble-package] package is installed, but will otherwise
-#'   return `data.frame`s. `.return` can override this behaviour, and takes
+#'   return `data.frame`s. `.class` can override this behaviour, and takes
 #'   either `"tbl"` or `"df"`, which sets the return class to be `tbl_df` or
 #'   `data.frame` respectively.
 #'
@@ -88,7 +88,7 @@ import_ukaq_meta <-
            year = NA,
            by_pollutant = FALSE,
            ...,
-           .return = NULL) {
+           .class = NULL) {
     rlang::check_dots_empty()
 
     source <-
@@ -98,7 +98,7 @@ import_ukaq_meta <-
 
     meta <- formatMeta(meta, year = year, by_pollutant = by_pollutant)
 
-    return(tbl(meta, .return))
+    return(tbl(meta, .class))
   }
 
 #' @rdname import_ukaq_meta
@@ -107,7 +107,7 @@ import_ukaq_meta <-
 import_ukaq_pollutants <-
   function(source = "ukaq",
            ...,
-           .return = NULL) {
+           .class = NULL) {
     rlang::check_dots_empty()
 
     source <-
@@ -118,7 +118,7 @@ import_ukaq_pollutants <-
     meta <- unique(meta[c("parameter", "Parameter_name")])
     names(meta) <- c("pollutant", "pollutant_name")
 
-    return(tbl(meta, .return))
+    return(tbl(meta, .class))
   }
 
 

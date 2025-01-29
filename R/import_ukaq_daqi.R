@@ -6,77 +6,26 @@
 #' daily statistic (e.g., daily average for PM10), the index (1:10) and the band
 #' (Low, Moderate, High, or Very High).
 #'
-#' @param code *Specific site codes to import.*
-#'
-#'    **required**
-#'
-#'   `code` expects a vector of character values. It defines the specific sites
-#'   to import will filter the result for specific sites based on their site
-#'   codes, available through [import_ukaq_meta()]. Note that a mismatch between
-#'   `code` and `source` may result in no data being imported.
-#'
-#' @param year *A year, or range of years, from which to import data.*
-#'
-#'    **required**
-#'
-#'   `year` expects a vector of integer values. It can be a single year
-#'   (`2020`), a selection of specific years (c(`2020, 2021, 2022`)), or a range
-#'   of years (`2020:2025`).
-#'
 #' @param source *One or more UK Monitoring networks from which to import data.*
 #'
-#'   *default:* `"aurn"`
+#'   *default:* `"ukaq"`
 #'
-#'   The default, `"aurn"`, will import data from the AURN. Any combination of
-#'   `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`, and `"niaqn"` will
-#'   *only* import data from those specific monitoring networks.
-#'   Alternatively, `"ukaq"` will import data from all five. Note that a
-#'   mismatch between `code` and `source` may result in no data being imported.
+#'   The default, `"ukaq"`, will look for sites from any of the available
+#'   networks. Any combination of `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`, or
+#'   `"niaqn"` will *only* import data from those specific monitoring networks.
+#'   Note that a mismatch between `code` and `source` may result in no data
+#'   being imported. The DAQI is not pre-calculated for `"lmam"` sites.
 #'
 #' @param pollutant *One or more DAQI pollutants for which to import data.*
 #'
-#'  *default:* `r daqi_pollutant_names`
+#'  *default:* `NULL`
 #'
-#'   By default, all `r length(daqi_pollutant_names)` DAQI pollutants are
-#'   imported by [import_ukaq_daqi()]. `pollutant` allows any specific
-#'   combination of the DAQI pollutants to be returned instead.
+#'   By default, all available pollutants are imported. `pollutant` allows any
+#'   specific combination of the pollutants to be returned instead. Note that
+#'   this should be a DAQI pollutant - i.e., one or more of `"no2"`, `"pm10"`,
+#'   `"pm2.5"`, `"o3"` or `"so2"`.
 #'
-#' @param append_metadata *Append site metadata to the dataframe?*
-#'
-#'  *default:* `FALSE`
-#'
-#'   When `TRUE`, the resulting `data.frame` will have site metadata appended.
-#'   The specific columns are selected using `metadata_columns`.
-#'
-#' @param metadata_columns *Specific metadata columns to append to the
-#'   data.frame.*
-#'
-#'  *default:* `c("site_type", "latitude", "longitude")`
-#'
-#'   When `append_metadata = TRUE`, the columns selected here will be appended
-#'   to the data. Columns names should match those in [import_ukaq_meta()],
-#'   excluding pollutant-specific columns (e.g., ratification date).
-#'
-#' @param pivot *Should the dataframe be 'wide' or 'long'?*
-#'
-#'  *default:* `"long"`
-#'
-#'   There are two main ways to store air quality data; "long" (with 'pollutant'
-#'   and 'value' columns) or "wide" (with each pollutant value being stored in
-#'   its own column). `pivot` allows users to define which format they would
-#'   prefer their data in.
-#'
-#' @param ... *Not used.*
-#'
-#' @param .return *Signifier for the dataframe class.*
-#'
-#'    *default:* `NULL`
-#'
-#'   [ukaq][ukaq-package] functions, by default, will return `tbl_df`s if the
-#'   [tibble][tibble::tibble-package] package is installed, but will otherwise
-#'   return `data.frame`s. `.return` can override this behaviour, and takes
-#'   either `"tbl"` or `"df"`, which sets the return class to be `tbl_df` or
-#'   `data.frame` respectively.
+#' @inheritParams import_ukaq_summaries
 #'
 #' @return a `data.frame`
 #'
@@ -90,19 +39,19 @@
 #'
 #' @export
 import_ukaq_daqi <-
-  function(code,
+  function(code = NULL,
            year,
            source = "aurn",
-           pollutant = c("no2", "o3", "pm10", "pm2.5", "so2"),
+           pollutant = NULL,
            append_metadata = FALSE,
            metadata_columns = c("site_type", "latitude", "longitude"),
            pivot = "long",
            ...,
-           .return = NULL) {
-    pollutant <-
-      rlang::arg_match(pollutant, daqi_pollutant_names, multiple = TRUE)
-    pivot <-
-      rlang::arg_match(pivot, c("wide", "long"))
+           .class = NULL) {
+    if (!is.null(pollutant)) {
+      pollutant <- rlang::arg_match(pollutant, daqi_pollutant_names, multiple = TRUE)
+    }
+    pivot <- match_pivot(pivot)
     metadata_columns <-
       rlang::arg_match(metadata_columns, metadata_column_names, multiple = TRUE)
     source <-
@@ -122,7 +71,7 @@ import_ukaq_daqi <-
         metadata_columns = metadata_columns
       )
 
-    return(tbl(daqi, .return))
+    return(tbl(daqi, .class))
   }
 
 #' Import DAQI data
@@ -174,8 +123,13 @@ formatDAQI <- function(daqi, pollutant, code, pivot, append_metadata, metadata_c
   daqi <- append_daqi_bands(daqi)
 
   # filter for site/pollutant
-  daqi <- daqi[tolower(daqi$pollutant) %in% tolower(pollutant),]
-  daqi <- daqi[tolower(daqi$code) %in% tolower(code),]
+  if (!is.null(pollutant)) {
+    daqi <- daqi[tolower(daqi$pollutant) %in% tolower(pollutant),]
+  }
+
+  if (!is.null(code)) {
+    daqi <- daqi[tolower(daqi$code) %in% tolower(code),]
+  }
 
   # pivot, if required
   if (pivot == "wide") {
