@@ -127,3 +127,12 @@ rbindNames <- function(data) {
 
   return(data)
 }
+
+#' Add Metadata cols
+#' @noRd
+append_metadata_cols <- function(data, source, metadata_columns) {
+  meta <- import_ukaq_meta(source = source, by_pollutant = FALSE)
+  meta <- meta[c(metadata_columns, "code", "source")]
+  data <- merge(data, meta, by = c("code", "source"))
+  return(data)
+}
