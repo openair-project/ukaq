@@ -112,7 +112,7 @@
 #'   *default:* `NA`
 #'
 #'   When `TRUE`, this function will print a progress bar to track individual
-#'   files being imported. If `FALSE` this is supressed. If `NA`, the default,
+#'   files being imported. If `FALSE` this is suppressed. If `NA`, the default,
 #'   the function will work out if a progress bar would be useful (i.e., if the
 #'   function is being run in an interactive session and if more than one remote
 #'   file is being accessed).

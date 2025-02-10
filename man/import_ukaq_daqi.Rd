@@ -101,7 +101,7 @@ prefer their data in.}
 \emph{default:} \code{NA}
 
 When \code{TRUE}, this function will print a progress bar to track individual
-files being imported. If \code{FALSE} this is supressed. If \code{NA}, the default,
+files being imported. If \code{FALSE} this is suppressed. If \code{NA}, the default,
 the function will work out if a progress bar would be useful (i.e., if the
 function is being run in an interactive session and if more than one remote
 file is being accessed).}
