@@ -3,10 +3,26 @@ template:
   package: openairpkgdown
 
 reference:
-- contents:
+- title: Access Metadata
+  desc: >
+    Functions to access UK air quality site metadata, including geographic and
+    technical information.
+  contents:
   - import_ukaq_meta
   - import_ukaq_pollutants
+
+- title: Import Air Quality Data
+  desc: >
+    Functions to import air quality data for specific monitoring sites in a
+    variety of different formats and aggregations.
+  contents:
   - import_ukaq_measurements
   - import_ukaq_summaries
   - import_ukaq_daqi
+
+- title: Utilities
+  desc: >
+    Other useful functions related to UK air quality legislation.
+  contents:
   - palette_daqi
+
