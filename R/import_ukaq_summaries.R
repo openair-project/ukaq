@@ -42,6 +42,7 @@ import_ukaq_summaries <-
            append_metadata = FALSE,
            metadata_columns = c("site_type", "latitude", "longitude"),
            pivot = "wide",
+           progress = NA,
            ...,
            .class = NULL) {
     pivot <- match_pivot(pivot)
@@ -59,7 +60,9 @@ import_ukaq_summaries <-
                   stringsAsFactors = FALSE)
 
     # import data
-    data <- importSummaries(grid = grid, data_type = data_type)
+    data <- importSummaries(grid = grid,
+                            data_type = data_type,
+                            progress = progress)
 
     # format data
     data <- formatSummary(data = data,
@@ -188,7 +191,25 @@ summary_url <-
 
 #' Import annual/monhtly summaries
 #' @noRd
-importSummaries <- function(grid, data_type) {
+importSummaries <- function(grid, data_type, progress) {
+  # deal w/ progress opt if NA
+  if (is.na(progress)) {
+    progress <- FALSE
+    if (nrow(grid) > 1L && rlang::is_interactive()) {
+      progress <- TRUE
+    }
+  }
+
+  if (progress) {
+    pb <- utils::txtProgressBar(
+      min = 0,
+      max = nrow(grid),
+      initial = 0,
+      style = 3L
+    )
+    on.exit(close(pb))
+  }
+
   data <-
     lapply(1:nrow(grid), function(x) {
       df <- tryCatch(
@@ -205,6 +226,9 @@ importSummaries <- function(grid, data_type) {
       if (!is.null(df)) {
         df$source <- grid$source[x]
         df <- df[, c("source", names(df)[names(df) != "source"])]
+      }
+      if (progress) {
+        utils::setTxtProgressBar(pb, value = x)
       }
       df
     })

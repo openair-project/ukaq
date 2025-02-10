@@ -13,6 +13,7 @@ import_ukaq_summaries(
   append_metadata = FALSE,
   metadata_columns = c("site_type", "latitude", "longitude"),
   pivot = "wide",
+  progress = NA,
   ...,
   .class = NULL
 )
@@ -84,6 +85,16 @@ There are two main ways to store air quality data; "long" (with 'pollutant'
 and 'value' columns) or "wide" (with each pollutant value being stored in
 its own column). \code{pivot} allows users to define which format they would
 prefer their data in.}
+
+\item{progress}{\emph{Show a progress bar?}
+
+\emph{default:} \code{NA}
+
+When \code{TRUE}, this function will print a progress bar to track individual
+files being imported. If \code{FALSE} this is supressed. If \code{NA}, the default,
+the function will work out if a progress bar would be useful (i.e., if the
+function is being run in an interactive session and if more than one remote
+file is being accessed).}
 
 \item{...}{\emph{Not used.}}
 

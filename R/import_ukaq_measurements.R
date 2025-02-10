@@ -107,6 +107,16 @@
 #'   - `"24_hour"`: 24-hour rolling mean concentrations for particulates.
 #'   - `"daily_max_8"`: Maximum daily rolling 8-hour maximum for O3 and CO.
 #'
+#' @param progress *Show a progress bar?*
+#'
+#'   *default:* `NA`
+#'
+#'   When `TRUE`, this function will print a progress bar to track individual
+#'   files being imported. If `FALSE` this is supressed. If `NA`, the default,
+#'   the function will work out if a progress bar would be useful (i.e., if the
+#'   function is being run in an interactive session and if more than one remote
+#'   file is being accessed).
+#'
 #' @return a `data.frame`
 #'
 #' @author Jack Davison, David Carslaw
@@ -126,6 +136,7 @@ import_ukaq_measurements <-
            append_metadata = FALSE,
            metadata_columns = c("site_type", "latitude", "longitude"),
            pivot = "wide",
+           progress = NA,
            ...,
            .class = NULL) {
     # ensure 'source' is correct
@@ -190,6 +201,24 @@ import_ukaq_measurements <-
         return(df)
       }))
 
+    # deal w/ progress opt if NA
+    if (is.na(progress)) {
+      progress <- FALSE
+      if (nrow(grid) > 1L && rlang::is_interactive()) {
+        progress <- TRUE
+      }
+    }
+
+    if (progress) {
+      pb <- utils::txtProgressBar(
+        min = 0,
+        max = nrow(grid),
+        initial = 0,
+        style = 3L
+      )
+      on.exit(close(pb))
+    }
+
     # import data
     data <-
       lapply(1:nrow(grid), function(x) {
@@ -201,6 +230,9 @@ import_ukaq_measurements <-
             year = m$year,
             dir = m$lmam_code
           )
+        if (progress) {
+          utils::setTxtProgressBar(pb, value = x)
+        }
         tryCatch(
           suppressWarnings(loadRData(url, object = data_type) |> transform(source = m$source)),
           error = function(e) {

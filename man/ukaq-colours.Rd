@@ -35,6 +35,15 @@ colours used for the DAQI on \href{https://uk-air.defra.gov.uk/air-pollution/daq
 options \code{"categorical"}, \code{"duo"}, \code{"focus"}, and \code{"sequential"} and returns
 the suggested colour palettes by the \href{https://analysisfunction.civilservice.gov.uk/policy-store/data-visualisation-colours-in-charts/}{UK Government Analysis Function}.
 }
+\examples{
+\dontrun{
+# Preview the colours with the 'scales' package
+
+palette_daqi() |> scales::show_col()
+
+palette_gaf() |> scales::show_col()
+}
+}
 \seealso{
 \url{https://uk-air.defra.gov.uk/air-pollution/daqi}
 

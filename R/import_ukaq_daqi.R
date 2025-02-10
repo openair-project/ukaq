@@ -46,6 +46,7 @@ import_ukaq_daqi <-
            append_metadata = FALSE,
            metadata_columns = c("site_type", "latitude", "longitude"),
            pivot = "long",
+           progress = NA,
            ...,
            .class = NULL) {
     if (!is.null(pollutant)) {
@@ -58,7 +59,7 @@ import_ukaq_daqi <-
       match_source(source = source, network_names = ukaq_network_names_nolocal)
 
     # import data
-    daqi <- importDAQI(year = year, source = source)
+    daqi <- importDAQI(year = year, source = source, progress = progress)
 
     # format
     daqi <-
@@ -76,11 +77,29 @@ import_ukaq_daqi <-
 
 #' Import DAQI data
 #' @noRd
-importDAQI <- function(year, source) {
+importDAQI <- function(year, source, progress) {
   grid <-
     expand.grid(year = year,
                 source = source,
                 stringsAsFactors = FALSE)
+
+  # deal w/ progress opt if NA
+  if (is.na(progress)) {
+    progress <- FALSE
+    if (nrow(grid) > 1L && rlang::is_interactive()) {
+      progress <- TRUE
+    }
+  }
+
+  if (progress) {
+    pb <- utils::txtProgressBar(
+      min = 0,
+      max = nrow(grid),
+      initial = 0,
+      style = 3L
+    )
+    on.exit(close(pb))
+  }
 
   # load daqi data
   daqi <-
@@ -95,6 +114,9 @@ importDAQI <- function(year, source) {
       if (!is.null(df)) {
         df$source <- grid$source[x]
         df <- df[, c("source", names(df)[names(df) != "source"])]
+      }
+      if (progress) {
+        utils::setTxtProgressBar(pb, value = x)
       }
       df
     })

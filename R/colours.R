@@ -44,7 +44,7 @@ palette_daqi <- function(option = c("index", "bands"),
                          named = FALSE) {
   option <- rlang::arg_match(option)
 
-  pals <- list("index" = setNames(
+  pals <- list("index" = stats::setNames(
     list(
       "#9CFF9C",
       "#31FF00",
@@ -59,7 +59,7 @@ palette_daqi <- function(option = c("index", "bands"),
     ),
     1:10
   ),
-  "bands" = setNames(
+  "bands" = stats::setNames(
     list("#009900", "#ff9900", "#ff0000", "#990099"),
     c("Low", "Moderate", "High", "Very High")
   ))
