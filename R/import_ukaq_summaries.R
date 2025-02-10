@@ -45,6 +45,8 @@ import_ukaq_summaries <-
            progress = NA,
            ...,
            .class = NULL) {
+    rlang::check_dots_empty()
+
     pivot <- match_pivot(pivot)
     metadata_columns <-
       rlang::arg_match(metadata_columns, metadata_column_names, multiple = TRUE)

@@ -139,6 +139,8 @@ import_ukaq_measurements <-
            progress = NA,
            ...,
            .class = NULL) {
+    rlang::check_dots_empty()
+
     # ensure 'source' is correct
     source <- match_source(source, ukaq_network_names)
 

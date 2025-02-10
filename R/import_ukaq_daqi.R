@@ -74,6 +74,8 @@ import_ukaq_daqi <-
            progress = NA,
            ...,
            .class = NULL) {
+    rlang::check_dots_empty()
+
     if (!is.null(pollutant)) {
       pollutant <- rlang::arg_match(pollutant, daqi_pollutant_names, multiple = TRUE)
     }
