@@ -5,7 +5,15 @@ test_that("daqi works", {
     code = NULL,
     pivot = "long",
     append_metadata = FALSE,
-    metadata_columns = c("zagglom")
+    metadata_columns = c("zagglom"),
+    daqi_columns = c(
+      "concentration",
+      "poll_index",
+      "poll_band",
+      "colour_index",
+      "colour_band",
+      "measurement_period"
+    )
   )
 
   expect_equal(nrow(default), nrow(rawDAQI))
@@ -20,7 +28,9 @@ test_that("daqi works", {
       "concentration",
       "poll_index",
       "poll_band",
-      "measurement_period"
+      "measurement_period",
+      "colour_index",
+      "colour_band"
     )
   )
 
@@ -35,7 +45,15 @@ test_that("daqi works", {
       code = NULL,
       pivot = "long",
       append_metadata = FALSE,
-      metadata_columns = c("zagglom")
+      metadata_columns = c("zagglom"),
+      daqi_columns = c(
+        "concentration",
+        "poll_index",
+        "poll_band",
+        "colour_index",
+        "colour_band",
+        "measurement_period"
+      )
     )
 
   expect_in(poll$pollutant, c("no2", "pm10"))
@@ -47,7 +65,15 @@ test_that("daqi works", {
       code = c("abd"),
       pivot = "long",
       append_metadata = FALSE,
-      metadata_columns = c("zagglom")
+      metadata_columns = c("zagglom"),
+      daqi_columns = c(
+        "concentration",
+        "poll_index",
+        "poll_band",
+        "colour_index",
+        "colour_band",
+        "measurement_period"
+      )
     )
 
   expect_in(codes$code, c("ABD"))
@@ -59,7 +85,15 @@ test_that("daqi works", {
       code = NULL,
       pivot = "wide",
       append_metadata = FALSE,
-      metadata_columns = c("zagglom")
+      metadata_columns = c("zagglom"),
+      daqi_columns = c(
+        "concentration",
+        "poll_index",
+        "poll_band",
+        "colour_index",
+        "colour_band",
+        "measurement_period"
+      )
     )
 
   expect_equal(
@@ -71,18 +105,30 @@ test_that("daqi works", {
       "no2",
       "no2_index",
       "no2_band",
+      "no2_col_index",
+      "no2_col_band",
+      "no2_period",
       "pm10",
       "pm10_index",
       "pm10_band",
+      "pm10_col_index",
+      "pm10_col_band",
+      "pm10_period",
       "pm2.5",
       "pm2.5_index",
-      "pm2.5_band"
+      "pm2.5_band",
+      "pm2.5_col_index",
+      "pm2.5_col_band",
+      "pm2.5_period"
     )
   )
 
   expect_type(wide$no2, "double")
   expect_type(wide$no2_index, "integer")
   expect_s3_class(wide$no2_band, "factor")
+  expect_type(wide$no2_col_index, "character")
+  expect_type(wide$no2_col_band, "character")
+  expect_type(wide$no2_period, "character")
 
   wide2 <-
     formatDAQI(
@@ -91,7 +137,15 @@ test_that("daqi works", {
       code = NULL,
       pivot = "wide",
       append_metadata = FALSE,
-      metadata_columns = c("zagglom")
+      metadata_columns = c("zagglom"),
+      daqi_columns = c(
+        "concentration",
+        "poll_index",
+        "poll_band",
+        "colour_index",
+        "colour_band",
+        "measurement_period"
+      )
     )
 
   expect_equal(
@@ -103,9 +157,15 @@ test_that("daqi works", {
       "no2",
       "no2_index",
       "no2_band",
+      "no2_col_index",
+      "no2_col_band",
+      "no2_period",
       "pm10",
       "pm10_index",
-      "pm10_band"
+      "pm10_band",
+      "pm10_col_index",
+      "pm10_col_band",
+      "pm10_period"
     )
   )
 })

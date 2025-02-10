@@ -2,9 +2,10 @@
 #'
 #' Imports [UK Daily Air Quality Index
 #' (DAQI)](https://uk-air.defra.gov.uk/air-pollution/daqi) data for selected
-#' pollutants, years, and sites. Returned information includes the relevant
-#' daily statistic (e.g., daily average for PM10), the index (1:10) and the band
-#' (Low, Moderate, High, or Very High).
+#' pollutants, years, and sites. Returned information can include the relevant
+#' daily statistic (e.g., daily average for PM10), the index (1:10), the band
+#' (Low, Moderate, High, or Very High), and the colour associated with the index
+#' and/or band.
 #'
 #' @param source *One or more UK Monitoring networks from which to import data.*
 #'
@@ -24,6 +25,25 @@
 #'   specific combination of the pollutants to be returned instead. Note that
 #'   this should be a DAQI pollutant - i.e., one or more of `"no2"`, `"pm10"`,
 #'   `"pm2.5"`, `"o3"` or `"so2"`.
+#'
+#' @param daqi_columns *Specific DAQI columns to include.*
+#'
+#'  *default:* `c("concentration", "poll_index", "poll_band")`
+#'
+#'   There are numerous DAQI-related data which can be returned within the
+#'   `data.frame`. This option expects a vector of any combination of:
+#'
+#'   - `"concentration"`: The measured daily concentration.
+#'
+#'   - `"poll_index"`: The daily pollution index (1-10).
+#'
+#'   - `"poll_band"`: The pollution band (Low, Moderate, High, Very High).
+#'
+#'   - `"colour_index"`: The colour associated with the pollution index. See [palette_daqi()].
+#'
+#'   - `"colour_band"`: The colour associated with the pollution band. See [palette_daqi()].
+#'
+#'   - `"measurement_period"`: The name of the statistic presented in `"concentration"`.
 #'
 #' @inheritParams import_ukaq_summaries
 #'
@@ -45,6 +65,11 @@ import_ukaq_daqi <-
            pollutant = NULL,
            append_metadata = FALSE,
            metadata_columns = c("site_type", "latitude", "longitude"),
+           daqi_columns = c(
+             "concentration",
+             "poll_index",
+             "poll_band"
+           ),
            pivot = "long",
            progress = NA,
            ...,
@@ -57,6 +82,8 @@ import_ukaq_daqi <-
       rlang::arg_match(metadata_columns, metadata_column_names, multiple = TRUE)
     source <-
       match_source(source = source, network_names = ukaq_network_names_nolocal)
+    daqi_columns <-
+      rlang::arg_match(daqi_columns, daqi_column_opts, multiple = TRUE)
 
     # import data
     daqi <- importDAQI(year = year, source = source, progress = progress)
@@ -69,7 +96,8 @@ import_ukaq_daqi <-
         code = code,
         pivot = pivot,
         append_metadata = append_metadata,
-        metadata_columns = metadata_columns
+        metadata_columns = metadata_columns,
+        daqi_columns = daqi_columns
       )
 
     return(tbl(daqi, .class))
@@ -138,7 +166,8 @@ formatDAQI <- function(daqi,
                        code,
                        pivot,
                        append_metadata,
-                       metadata_columns) {
+                       metadata_columns,
+                       daqi_columns) {
   # deal with data types & names
   names(daqi) <- tolower(names(daqi))
   daqi$date <- as.Date(as.character(daqi$date), tz = "GMT")
@@ -147,7 +176,9 @@ formatDAQI <- function(daqi,
   daqi <- factor_to_char(daqi)
 
   # create poll band column
-  daqi <- append_daqi_bands(daqi)
+  if ("poll_band" %in% daqi_columns) {
+    daqi <- append_daqi_bands(daqi)
+  }
 
   # filter for site/pollutant
   if (!is.null(pollutant)) {
@@ -158,9 +189,22 @@ formatDAQI <- function(daqi,
     daqi <- daqi[tolower(daqi$code) %in% tolower(code), ]
   }
 
+  # assign colours
+  if ("colour_index" %in% daqi_columns) {
+    daqi$colour_index <- palette_daqi("index", named = TRUE)[daqi$poll_index]
+  }
+  if ("colour_band" %in% daqi_columns) {
+    daqi$colour_band <- palette_daqi("bands", named = TRUE)[daqi$poll_band]
+  }
+
+  # deal with daqi column selection
+  for (i in setdiff(daqi_column_opts, daqi_columns)) {
+    daqi[i] <- NULL
+  }
+
   # pivot, if required
   if (pivot == "wide") {
-    daqi <- pivotDAQI(daqi)
+    daqi <- pivotDAQI(daqi, opts = daqi_columns)
   }
 
   # append metadata, if requested
@@ -178,25 +222,35 @@ formatDAQI <- function(daqi,
 
 #' Reshape DAQI
 #' @noRd
-pivotDAQI <- function(daqi) {
+pivotDAQI <- function(daqi, opts) {
+  opts[opts == "concentration"] <- "value"
+  opts[opts == "poll_index"] <- "index"
+  opts[opts == "poll_band"] <- "band"
+  opts[opts == "colour_index"] <- "col_index"
+  opts[opts == "colour_band"] <- "col_band"
+  opts[opts == "measurement_period"] <- "period"
+
   names(daqi)[names(daqi) == "concentration"] <- "value"
   names(daqi)[names(daqi) == "poll_index"] <- "index"
   names(daqi)[names(daqi) == "poll_band"] <- "band"
+  names(daqi)[names(daqi) == "colour_index"] <- "col_index"
+  names(daqi)[names(daqi) == "colour_band"] <- "col_band"
+  names(daqi)[names(daqi) == "measurement_period"] <- "period"
 
   daqi <-
     stats::reshape(
-      as.data.frame(daqi)[c("date", "code", "site", "pollutant", "value", "index", "band")],
+      as.data.frame(daqi)[c("date", "code", "site", "pollutant", opts)],
       timevar = "pollutant",
       idvar = c("date", "code", "site"),
       direction = "wide",
-      v.names = c("value", "index", "band"),
+      v.names = opts,
       sep = "_"
     )
 
   names(daqi) <- gsub("value_", "", names(daqi))
 
   grid <-
-    expand.grid(a = c("index", "band"), b = daqi_pollutant_names)
+    expand.grid(a = opts[opts != "value"], b = daqi_pollutant_names)
   old <- paste(grid$a, grid$b, sep = "_")
   new <- paste(grid$b, grid$a, sep = "_")
 
@@ -244,3 +298,13 @@ append_daqi_bands <- function(data) {
 
   return(data)
 }
+
+# options for daqi columns
+daqi_column_opts <- c(
+  "concentration",
+  "poll_index",
+  "poll_band",
+  "colour_index",
+  "colour_band",
+  "measurement_period"
+)

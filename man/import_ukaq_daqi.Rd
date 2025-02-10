@@ -11,6 +11,7 @@ import_ukaq_daqi(
   pollutant = NULL,
   append_metadata = FALSE,
   metadata_columns = c("site_type", "latitude", "longitude"),
+  daqi_columns = c("concentration", "poll_index", "poll_band"),
   pivot = "long",
   progress = NA,
   ...,
@@ -71,6 +72,21 @@ When \code{append_metadata = TRUE}, the columns selected here will be appended
 to the data. Columns names should match those in \code{\link[=import_ukaq_meta]{import_ukaq_meta()}},
 excluding pollutant-specific columns (e.g., ratification date).}
 
+\item{daqi_columns}{\emph{Specific DAQI columns to include.}
+
+\emph{default:} \code{c("concentration", "poll_index", "poll_band")}
+
+There are numerous DAQI-related data which can be returned within the
+\code{data.frame}. This option expects a vector of any combination of:
+\itemize{
+\item \code{"concentration"}: The measured daily concentration.
+\item \code{"poll_index"}: The daily pollution index (1-10).
+\item \code{"poll_band"}: The pollution band (Low, Moderate, High, Very High).
+\item \code{"colour_index"}: The colour associated with the pollution index. See \code{\link[=palette_daqi]{palette_daqi()}}.
+\item \code{"colour_band"}: The colour associated with the pollution band. See \code{\link[=palette_daqi]{palette_daqi()}}.
+\item \code{"measurement_period"}: The name of the statistic presented in \code{"concentration"}.
+}}
+
 \item{pivot}{\emph{Should the dataframe be 'wide' or 'long'?}
 
 \emph{default:} \code{"wide"}
@@ -107,9 +123,10 @@ a \code{data.frame}
 }
 \description{
 Imports \href{https://uk-air.defra.gov.uk/air-pollution/daqi}{UK Daily Air Quality Index (DAQI)} data for selected
-pollutants, years, and sites. Returned information includes the relevant
-daily statistic (e.g., daily average for PM10), the index (1:10) and the band
-(Low, Moderate, High, or Very High).
+pollutants, years, and sites. Returned information can include the relevant
+daily statistic (e.g., daily average for PM10), the index (1:10), the band
+(Low, Moderate, High, or Very High), and the colour associated with the index
+and/or band.
 }
 \references{
 With thanks to Trevor Davies and \href{https://www.ricardo.com/en}{Ricardo Plc} for preparing and hosting the data
