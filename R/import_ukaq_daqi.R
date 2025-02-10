@@ -102,7 +102,7 @@ import_ukaq_daqi <-
         daqi_columns = daqi_columns
       )
 
-    return(tbl(daqi, .class))
+    return(tbl_out(daqi, .class))
   }
 
 #' Import DAQI data

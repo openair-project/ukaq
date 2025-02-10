@@ -44,11 +44,11 @@ test_that("factor conversions work", {
 })
 
 test_that("table reclassifier works", {
-  expect_no_error(tbl(iris, .class = NULL))
+  expect_no_error(tbl_out(iris, .class = NULL))
 
-  expect_s3_class(tbl(iris, .class = "tbl"), c("tbl_df", "tbl", "data.frame"))
+  expect_s3_class(tbl_out(iris, .class = "tbl"), c("tbl_df", "tbl", "data.frame"))
 
-  expect_s3_class(tbl(iris, .class = "df"), c("data.frame"))
+  expect_s3_class(tbl_out(iris, .class = "df"), c("data.frame"))
 })
 
 test_that("we can bind dataframes with different columns", {

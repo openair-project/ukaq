@@ -339,7 +339,7 @@ import_ukaq_measurements <-
         append_metadata_cols(data, source = source, metadata_columns = metadata_columns)
     }
 
-    return(tbl(data, .class = .class))
+    return(tbl_out(data, .class = .class))
   }
 
 #' Construct measurement URL

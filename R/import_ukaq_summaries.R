@@ -77,7 +77,7 @@ import_ukaq_summaries <-
                           pivot = pivot)
 
     # return
-    return(tbl(data, .class))
+    return(tbl_out(data, .class))
   }
 
 #' Format AQ Summary Data

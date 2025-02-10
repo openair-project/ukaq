@@ -2,7 +2,7 @@
 #' @param table Input table
 #' @param .class Inherited from parent function
 #' @noRd
-tbl <- function(table, .class) {
+tbl_out <- function(table, .class) {
   input <- .class %||% ifelse(rlang::is_installed("tibble"), "tbl", "df")
   input <- rlang::arg_match(input, c("tbl", "df"))
 

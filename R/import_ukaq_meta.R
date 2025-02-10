@@ -98,7 +98,7 @@ import_ukaq_meta <-
 
     meta <- formatMeta(meta, year = year, by_pollutant = by_pollutant)
 
-    return(tbl(meta, .class))
+    return(tbl_out(meta, .class))
   }
 
 #' @rdname import_ukaq_meta
@@ -118,7 +118,7 @@ import_ukaq_pollutants <-
     meta <- unique(meta[c("parameter", "Parameter_name")])
     names(meta) <- c("pollutant", "pollutant_name")
 
-    return(tbl(meta, .class))
+    return(tbl_out(meta, .class))
   }
 
 
