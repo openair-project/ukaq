@@ -59,25 +59,31 @@
 #'
 #' @export
 import_ukaq_daqi <-
-  function(code = NULL,
-           year,
-           source = "aurn",
-           pollutant = NULL,
-           append_metadata = FALSE,
-           metadata_columns = c("site_type", "latitude", "longitude"),
-           daqi_columns = c(
-             "concentration",
-             "poll_index",
-             "poll_band"
-           ),
-           pivot = "long",
-           progress = NA,
-           ...,
-           .class = NULL) {
+  function(
+    code = NULL,
+    year,
+    source = "aurn",
+    pollutant = NULL,
+    append_metadata = FALSE,
+    metadata_columns = c("site_type", "latitude", "longitude"),
+    daqi_columns = c(
+      "concentration",
+      "poll_index",
+      "poll_band"
+    ),
+    pivot = "long",
+    progress = NA,
+    ...,
+    .class = NULL
+  ) {
     rlang::check_dots_empty()
 
     if (!is.null(pollutant)) {
-      pollutant <- rlang::arg_match(pollutant, daqi_pollutant_names, multiple = TRUE)
+      pollutant <- rlang::arg_match(
+        pollutant,
+        daqi_pollutant_names,
+        multiple = TRUE
+      )
     }
     pivot <- match_pivot(pivot)
     metadata_columns <-
@@ -109,9 +115,7 @@ import_ukaq_daqi <-
 #' @noRd
 importDAQI <- function(year, source, progress) {
   grid <-
-    expand.grid(year = year,
-                source = source,
-                stringsAsFactors = FALSE)
+    expand.grid(year = year, source = source, stringsAsFactors = FALSE)
 
   # deal w/ progress opt if NA
   if (is.na(progress)) {
@@ -122,13 +126,8 @@ importDAQI <- function(year, source, progress) {
   }
 
   if (progress) {
-    pb <- utils::txtProgressBar(
-      min = 0,
-      max = nrow(grid),
-      initial = 0,
-      style = 3L
-    )
-    on.exit(close(pb))
+    pb <- pb_init(name = "Importing DAQI", x = nrow(grid))
+    on.exit(pb_close(pb))
   }
 
   # load daqi data
@@ -136,19 +135,21 @@ importDAQI <- function(year, source, progress) {
     lapply(1:nrow(grid), function(x) {
       df <- tryCatch(
         suppressWarnings(loadRDS(daqi_url(
-          grid$source[x], grid$year[x]
+          grid$source[x],
+          grid$year[x]
         ))),
-        error = function(e)
+        error = function(e) {
           NULL
+        }
       )
       if (!is.null(df)) {
         df$source <- grid$source[x]
         df <- df[, c("source", names(df)[names(df) != "source"])]
       }
       if (progress) {
-        utils::setTxtProgressBar(pb, value = x)
+        pb_increment(pb, x = x)
       }
-      df
+      return(df)
     })
 
   daqi <- do.call(rbind, daqi)
@@ -163,13 +164,15 @@ importDAQI <- function(year, source, progress) {
 
 #' Format DAQI data
 #' @noRd
-formatDAQI <- function(daqi,
-                       pollutant,
-                       code,
-                       pivot,
-                       append_metadata,
-                       metadata_columns,
-                       daqi_columns) {
+formatDAQI <- function(
+  daqi,
+  pollutant,
+  code,
+  pivot,
+  append_metadata,
+  metadata_columns,
+  daqi_columns
+) {
   # deal with data types & names
   names(daqi) <- tolower(names(daqi))
   daqi$date <- as.Date(as.character(daqi$date), tz = "GMT")
@@ -212,7 +215,11 @@ formatDAQI <- function(daqi,
   # append metadata, if requested
   if (append_metadata) {
     daqi <-
-      append_metadata_cols(daqi, source = source, metadata_columns = metadata_columns)
+      append_metadata_cols(
+        daqi,
+        source = source,
+        metadata_columns = metadata_columns
+      )
   }
 
   # order by site/date
@@ -296,7 +303,10 @@ append_daqi_bands <- function(data) {
     factor(data$poll_band, c("Low", "Moderate", "High", "Very High"))
 
   data <-
-    data[, c(names(data)[names(data) != "measurement_period"], "measurement_period")]
+    data[, c(
+      names(data)[names(data) != "measurement_period"],
+      "measurement_period"
+    )]
 
   return(data)
 }

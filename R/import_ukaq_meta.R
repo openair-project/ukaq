@@ -84,11 +84,13 @@
 #'
 #' @export
 import_ukaq_meta <-
-  function(source = "ukaq",
-           year = NA,
-           by_pollutant = FALSE,
-           ...,
-           .class = NULL) {
+  function(
+    source = "ukaq",
+    year = NA,
+    by_pollutant = FALSE,
+    ...,
+    .class = NULL
+  ) {
     rlang::check_dots_empty()
 
     source <-
@@ -105,9 +107,7 @@ import_ukaq_meta <-
 #' @order 2
 #' @export
 import_ukaq_pollutants <-
-  function(source = "ukaq",
-           ...,
-           .class = NULL) {
+  function(source = "ukaq", ..., .class = NULL) {
     rlang::check_dots_empty()
 
     source <-
@@ -124,9 +124,7 @@ import_ukaq_pollutants <-
 
 #' Format raw metadata
 #' @noRd
-formatMeta <- function(meta,
-                       year = year,
-                       by_pollutant = by_pollutant) {
+formatMeta <- function(meta, year = year, by_pollutant = by_pollutant) {
   names(meta) <- tolower(names(meta))
 
   # rename columns
@@ -183,13 +181,16 @@ formatMeta <- function(meta,
   # summarise if not by pollutant
   if (!by_pollutant) {
     newtbl <-
-      do.call(rbind, lapply(split(meta, meta$site), function(df) {
-        df[1, "start_date"] <- min(df$start_date)
-        df[1, "end_date"] <- max(df$end_date)
-        df <- df[1, ]
-        df$ratified_to <- df$pollutant <- NULL
-        df
-      }))
+      do.call(
+        rbind,
+        lapply(split(meta, meta$site), function(df) {
+          df[1, "start_date"] <- min(df$start_date)
+          df[1, "end_date"] <- max(df$end_date)
+          df <- df[1, ]
+          df$ratified_to <- df$pollutant <- NULL
+          df
+        })
+      )
 
     # Drop unused columns
     newtbl$pollutant <- newtbl$ratified_to <- NULL
@@ -204,8 +205,10 @@ formatMeta <- function(meta,
       as.integer(format(Sys.Date(), "%Y"))
 
     meta <-
-      meta[meta$start_year <= min(year) &
-             meta$end_year >= max(year),]
+      meta[
+        meta$start_year <= min(year) &
+          meta$end_year >= max(year),
+      ]
 
     meta$start_year <- meta$end_year <- NULL
   }

@@ -1,4 +1,3 @@
-
 #' Import Monthly and Annual Summaries of UK Air Quality Data
 #'
 #' Imports either annual or monthly summaries matching UK AIR. Unlike the data
@@ -34,17 +33,19 @@
 #'
 #' @export
 import_ukaq_summaries <-
-  function(code = NULL,
-           year,
-           source = "aurn",
-           data_type = "annual",
-           pollutant = NULL,
-           append_metadata = FALSE,
-           metadata_columns = c("site_type", "latitude", "longitude"),
-           pivot = "wide",
-           progress = NA,
-           ...,
-           .class = NULL) {
+  function(
+    code = NULL,
+    year,
+    source = "aurn",
+    data_type = "annual",
+    pollutant = NULL,
+    append_metadata = FALSE,
+    metadata_columns = c("site_type", "latitude", "longitude"),
+    pivot = "wide",
+    progress = NA,
+    ...,
+    .class = NULL
+  ) {
     rlang::check_dots_empty()
 
     pivot <- match_pivot(pivot)
@@ -57,24 +58,26 @@ import_ukaq_summaries <-
 
     # get grid of years & sources
     grid <-
-      expand.grid(year = year,
-                  source = source,
-                  stringsAsFactors = FALSE)
+      expand.grid(year = year, source = source, stringsAsFactors = FALSE)
 
     # import data
-    data <- importSummaries(grid = grid,
-                            data_type = data_type,
-                            progress = progress)
+    data <- importSummaries(
+      grid = grid,
+      data_type = data_type,
+      progress = progress
+    )
 
     # format data
-    data <- formatSummary(data = data,
-                          code = code,
-                          source = source,
-                          data_type = data_type,
-                          pollutant = pollutant,
-                          append_metadata = append_metadata,
-                          metadata_columns = metadata_columns,
-                          pivot = pivot)
+    data <- formatSummary(
+      data = data,
+      code = code,
+      source = source,
+      data_type = data_type,
+      pollutant = pollutant,
+      append_metadata = append_metadata,
+      metadata_columns = metadata_columns,
+      pivot = pivot
+    )
 
     # return
     return(tbl_out(data, .class))
@@ -82,14 +85,16 @@ import_ukaq_summaries <-
 
 #' Format AQ Summary Data
 #' @noRd
-formatSummary <- function(data,
-                          code,
-                          source,
-                          data_type,
-                          pollutant,
-                          append_metadata,
-                          metadata_columns,
-                          pivot){
+formatSummary <- function(
+  data,
+  code,
+  source,
+  data_type,
+  pollutant,
+  append_metadata,
+  metadata_columns,
+  pivot
+) {
   # drop UKA code
   names(data) <- tolower(names(data))
   names(data) <- sub("noxasno2", "nox", names(data))
@@ -110,20 +115,22 @@ formatSummary <- function(data,
     data$month <- as.integer(format(data$date, "%m"))
     data$month_label <- factor(format(data$date, "%b"), month.abb)
     data <-
-      data[, c("source",
-               "date",
-               "year",
-               "month",
-               "month_label",
-               setdiff(
-                 names(data),
-                 c("source", "date", "year", "month", "month_label")
-               ))]
+      data[, c(
+        "source",
+        "date",
+        "year",
+        "month",
+        "month_label",
+        setdiff(
+          names(data),
+          c("source", "date", "year", "month", "month_label")
+        )
+      )]
   }
 
   # filter for site
   if (!is.null(code)) {
-    data <- data[tolower(data$code) %in% tolower(code),]
+    data <- data[tolower(data$code) %in% tolower(code), ]
   }
 
   # pivot & deal with pollutants
@@ -131,7 +138,7 @@ formatSummary <- function(data,
   if (pivot == "long") {
     data <- pivot_summary_longer(data)
     if (!is.null(pollutant)) {
-      data <- data[tolower(data$pollutant) %in% tolower(pollutant),]
+      data <- data[tolower(data$pollutant) %in% tolower(pollutant), ]
     }
   }
 
@@ -139,13 +146,7 @@ formatSummary <- function(data,
     if (!is.null(pollutant)) {
       if (data_type == "monthly") {
         non_pollutant_cols <-
-          c("source",
-            "date",
-            "year",
-            "month",
-            "month_label",
-            "code",
-            "site")
+          c("source", "date", "year", "month", "month_label", "code", "site")
       } else {
         non_pollutant_cols <- c("source", "date", "year", "code", "site")
       }
@@ -162,7 +163,11 @@ formatSummary <- function(data,
   # append metadata, if requested
   if (append_metadata) {
     data <-
-      append_metadata_cols(data, source = source, metadata_columns = metadata_columns)
+      append_metadata_cols(
+        data,
+        source = source,
+        metadata_columns = metadata_columns
+      )
   }
 
   return(data)
@@ -203,13 +208,8 @@ importSummaries <- function(grid, data_type, progress) {
   }
 
   if (progress) {
-    pb <- utils::txtProgressBar(
-      min = 0,
-      max = nrow(grid),
-      initial = 0,
-      style = 3L
-    )
-    on.exit(close(pb))
+    pb <- pb_init(name = "Importing Summaries", x = nrow(grid))
+    on.exit(pb_close(pb))
   }
 
   data <-
@@ -222,15 +222,14 @@ importSummaries <- function(grid, data_type, progress) {
             stat = data_type
           )
         )),
-        error = function(e)
-          NULL
+        error = function(e) NULL
       )
       if (!is.null(df)) {
         df$source <- grid$source[x]
         df <- df[, c("source", names(df)[names(df) != "source"])]
       }
       if (progress) {
-        utils::setTxtProgressBar(pb, value = x)
+        pb_increment(pb, value = x)
       }
       df
     })
@@ -257,35 +256,27 @@ pivot_summary_longer <- function(data) {
   data <- as.data.frame(data)
 
   names(data) <-
-    sub("2.5",
-        "25",
-        names(data))
+    sub("2.5", "25", names(data))
 
   names(data) <-
-    sub("o3.mean.daily.max.8hour",
-        "o3meandailymax8hour.mean",
-        names(data))
+    sub("o3.mean.daily.max.8hour", "o3meandailymax8hour.mean", names(data))
 
   names(data) <-
-    sub("o3.aot40v",
-        "o3aot40v.mean",
-        names(data))
+    sub("o3.aot40v", "o3aot40v.mean", names(data))
 
   names(data) <-
-    sub("o3.aot40f",
-        "o3aot40f.mean",
-        names(data))
+    sub("o3.aot40f", "o3aot40f.mean", names(data))
 
   names(data) <-
-    sub("o3.summer",
-        "o3summer",
-        names(data))
+    sub("o3.summer", "o3summer", names(data))
 
   names(data)[names(data) == "somo35"] <- "somo35.mean"
 
   pivotvars <-
-    c(names(data)[endsWith(names(data), ".mean")],
-      names(data)[endsWith(names(data), ".capture")])
+    c(
+      names(data)[endsWith(names(data), ".mean")],
+      names(data)[endsWith(names(data), ".capture")]
+    )
 
   idvars <-
     setdiff(names(data), pivotvars)
@@ -304,12 +295,10 @@ pivot_summary_longer <- function(data) {
   rownames(long) <- NULL
 
   long$pollutant <-
-    sapply(strsplit(long$variable, split = "\\."), function(x)
-      x[1])
+    sapply(strsplit(long$variable, split = "\\."), function(x) x[1])
 
   long$stat <-
-    sapply(strsplit(long$variable, split = "\\."), function(x)
-      x[2])
+    sapply(strsplit(long$variable, split = "\\."), function(x) x[2])
 
   long$variable <- NULL
 
