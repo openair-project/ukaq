@@ -229,7 +229,7 @@ importSummaries <- function(grid, data_type, progress) {
         df <- df[, c("source", names(df)[names(df) != "source"])]
       }
       if (progress) {
-        pb_increment(pb, value = x)
+        pb_increment(pb, x = x)
       }
       df
     })
