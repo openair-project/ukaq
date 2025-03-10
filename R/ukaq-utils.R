@@ -147,6 +147,7 @@ append_metadata_cols <- function(data, source, metadata_columns) {
 }
 
 #' Functions to initialise progress bars
+#' @noRd
 pb_init <- function(name, x) {
   if (rlang::is_installed("cli")) {
     pb <- cli::cli_progress_bar(
@@ -160,6 +161,7 @@ pb_init <- function(name, x) {
   return(pb)
 }
 
+#' @noRd
 pb_close <- function(pb) {
   if (rlang::is_installed("cli")) {
     cli::cli_progress_done(id = pb)
@@ -168,6 +170,7 @@ pb_close <- function(pb) {
   }
 }
 
+#' @noRd
 pb_increment <- function(pb, x) {
   if (rlang::is_installed("cli")) {
     cli::cli_progress_update(id = pb, set = x)
