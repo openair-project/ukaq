@@ -11,8 +11,10 @@ test_that("annual works", {
     pivot = "wide"
   )
 
-  expect_contains(names(default_test),
-                  c("source", "date", "year", "code", "site"))
+  expect_contains(
+    names(default_test),
+    c("source", "date", "year", "code", "site")
+  )
 
   # codes
   codetest <- formatSummary(
@@ -40,8 +42,10 @@ test_that("annual works", {
     pivot = "wide"
   )
 
-  expect_equal(names(polltest),
-               c("source", "date", "year", "code", "site", "no2", "no2.capture"))
+  expect_equal(
+    names(polltest),
+    c("source", "date", "year", "code", "site", "no2", "no2.capture")
+  )
 
   # pivot
   longtest <- formatSummary(
@@ -82,7 +86,6 @@ test_that("annual works", {
 
   expect_equal(nrow(longtest2), 20L)
   expect_in(longtest2$pollutant, c("no2", "o3"))
-
 })
 
 test_that("monthly works", {

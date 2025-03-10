@@ -17,7 +17,8 @@ tbl_out <- function(table, .class) {
 #' @param path URL to RData
 #' @param object The specific object of interest, if multiple exist
 #' @noRd
-loadRData <- function(path, object) {# nocov start
+loadRData <- function(path, object) {
+  # nocov start
   # connect to the URL
   connection <- url(path)
 
@@ -49,14 +50,20 @@ loadRData <- function(path, object) {# nocov start
   }
 
   table <-
-    table[c("date", "code", "site", names(table)[!names(table) %in% c("date", "code", "site")])]
+    table[c(
+      "date",
+      "code",
+      "site",
+      names(table)[!names(table) %in% c("date", "code", "site")]
+    )]
 
   # return
   return(table)
 } # nocov end
 
 #' @noRd
-loadRDS <- function(x) { # nocov start
+loadRDS <- function(x) {
+  # nocov start
   con <- url(x)
   on.exit(close.connection(con))
   readRDS(con)
@@ -66,12 +73,14 @@ loadRDS <- function(x) { # nocov start
 #' Base R coalesce
 #' @noRd
 coalesce <- function(...) {
-  Reduce(function(x, y) {
-    i <- which(is.na(x))
-    x[i] <- y[i]
-    x
-  },
-  list(...))
+  Reduce(
+    function(x, y) {
+      i <- which(is.na(x))
+      x[i] <- y[i]
+      x
+    },
+    list(...)
+  )
 }
 
 #' Replaces "ukaq" with valid source names
@@ -135,4 +144,34 @@ append_metadata_cols <- function(data, source, metadata_columns) {
   meta <- meta[c(metadata_columns, "code", "source")]
   data <- merge(data, meta, by = c("code", "source"))
   return(data)
+}
+
+#' Functions to initialise progress bars
+pb_init <- function(name, x) {
+  if (rlang::is_installed("cli")) {
+    pb <- cli::cli_progress_bar(
+      name = name,
+      total = x,
+      .envir = parent.frame(2)
+    )
+  } else {
+    pb <- utils::txtProgressBar(title = name, label = name, min = 0, max = x)
+  }
+  return(pb)
+}
+
+pb_close <- function(pb) {
+  if (rlang::is_installed("cli")) {
+    cli::cli_progress_done(id = pb)
+  } else {
+    close(pb)
+  }
+}
+
+pb_increment <- function(pb, x) {
+  if (rlang::is_installed("cli")) {
+    cli::cli_progress_update(id = pb, set = x)
+  } else {
+    utils::setTxtProgressBar(pb, x)
+  }
 }

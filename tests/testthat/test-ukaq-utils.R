@@ -9,8 +9,7 @@ test_that("'ukaq' gets subbed correctly", {
     c("aurn", "aqe", "saqn", "waqn", "niaqn")
   )
 
-  expect_equal(match_source("aurn", ukaq_network_names),
-               c("aurn"))
+  expect_equal(match_source("aurn", ukaq_network_names), c("aurn"))
 
   expect_error(match_source("woops", ukaq_network_names))
 
@@ -39,14 +38,19 @@ test_that("factor conversions work", {
 
   classes <- sapply(fmtdata, class) |> unname()
 
-  expect_equal(classes,
-               c("integer", "Date", "character", "character", "character"))
+  expect_equal(
+    classes,
+    c("integer", "Date", "character", "character", "character")
+  )
 })
 
 test_that("table reclassifier works", {
   expect_no_error(tbl_out(iris, .class = NULL))
 
-  expect_s3_class(tbl_out(iris, .class = "tbl"), c("tbl_df", "tbl", "data.frame"))
+  expect_s3_class(
+    tbl_out(iris, .class = "tbl"),
+    c("tbl_df", "tbl", "data.frame")
+  )
 
   expect_s3_class(tbl_out(iris, .class = "df"), c("data.frame"))
 })

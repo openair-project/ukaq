@@ -1,4 +1,3 @@
-
 #' Get palettes of colours related to UK Air Quality legislation
 #'
 #' These functions are convenient ways to obtain vectors of colours for charts
@@ -40,29 +39,30 @@
 #'
 #' palette_gaf() |> scales::show_col()
 #' }
-palette_daqi <- function(option = c("index", "bands"),
-                         named = FALSE) {
+palette_daqi <- function(option = c("index", "bands"), named = FALSE) {
   option <- rlang::arg_match(option)
 
-  pals <- list("index" = stats::setNames(
-    list(
-      "#9CFF9C",
-      "#31FF00",
-      "#31CF00",
-      "#FFFF00",
-      "#FFCF00",
-      "#FF9A00",
-      "#FF6464",
-      "#FF0000",
-      "#990000",
-      "#CE30FF"
+  pals <- list(
+    "index" = stats::setNames(
+      list(
+        "#9CFF9C",
+        "#31FF00",
+        "#31CF00",
+        "#FFFF00",
+        "#FFCF00",
+        "#FF9A00",
+        "#FF6464",
+        "#FF0000",
+        "#990000",
+        "#CE30FF"
+      ),
+      1:10
     ),
-    1:10
-  ),
-  "bands" = stats::setNames(
-    list("#009900", "#ff9900", "#ff0000", "#990099"),
-    c("Low", "Moderate", "High", "Very High")
-  ))
+    "bands" = stats::setNames(
+      list("#009900", "#ff9900", "#ff0000", "#990099"),
+      c("Low", "Moderate", "High", "Very High")
+    )
+  )
 
   pal <- pals[[option]]
 
@@ -74,8 +74,10 @@ palette_daqi <- function(option = c("index", "bands"),
 #' @rdname ukaq-colours
 #' @order 2
 #' @export
-palette_gaf <- function(option = c("categorical", "duo", "focus", "sequential"),
-                        named = FALSE) {
+palette_gaf <- function(
+  option = c("categorical", "duo", "focus", "sequential"),
+  named = FALSE
+) {
   option <- rlang::arg_match(option)
 
   pals <- list(

@@ -6,9 +6,11 @@ rawMeta <- dplyr::slice_head(rawMeta, n = 5, by = source)
 
 # summary
 grid <-
-  expand.grid(year = 2020:2022,
-              source = c("aurn", "lmam"),
-              stringsAsFactors = FALSE)
+  expand.grid(
+    year = 2020:2022,
+    source = c("aurn", "lmam"),
+    stringsAsFactors = FALSE
+  )
 
 rawSummaryAnnual <- importSummaries(grid, data_type = "annual")
 rawSummaryAnnual <- dplyr::slice_head(rawSummaryAnnual, n = 5, by = source) |>
@@ -20,7 +22,7 @@ rawSummaryMonthly <- dplyr::slice_head(rawSummaryMonthly, n = 5, by = source) |>
 
 # daqi
 rawDAQI <- importDAQI(2020:2022, source = c("aurn", "saqn"))
-rawDAQI <- dplyr::slice_head(rawDAQI, n = 5 , by = source)
+rawDAQI <- dplyr::slice_head(rawDAQI, n = 5, by = source)
 
 usethis::use_data(
   rawMeta,
