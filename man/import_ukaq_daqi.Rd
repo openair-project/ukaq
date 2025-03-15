@@ -82,8 +82,8 @@ There are numerous DAQI-related data which can be returned within the
 \item \code{"concentration"}: The measured daily concentration.
 \item \code{"poll_index"}: The daily pollution index (1-10).
 \item \code{"poll_band"}: The pollution band (Low, Moderate, High, Very High).
-\item \code{"colour_index"}: The colour associated with the pollution index. See \code{\link[=palette_daqi]{palette_daqi()}}.
-\item \code{"colour_band"}: The colour associated with the pollution band. See \code{\link[=palette_daqi]{palette_daqi()}}.
+\item \code{"colour_index"}: The colour associated with the pollution index.
+\item \code{"colour_band"}: The colour associated with the pollution band.
 \item \code{"measurement_period"}: The name of the statistic presented in \code{"concentration"}.
 }}
 

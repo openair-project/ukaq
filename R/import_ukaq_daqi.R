@@ -39,9 +39,9 @@
 #'
 #'   - `"poll_band"`: The pollution band (Low, Moderate, High, Very High).
 #'
-#'   - `"colour_index"`: The colour associated with the pollution index. See [palette_daqi()].
+#'   - `"colour_index"`: The colour associated with the pollution index.
 #'
-#'   - `"colour_band"`: The colour associated with the pollution band. See [palette_daqi()].
+#'   - `"colour_band"`: The colour associated with the pollution band.
 #'
 #'   - `"measurement_period"`: The name of the statistic presented in `"concentration"`.
 #'
@@ -196,10 +196,10 @@ formatDAQI <- function(
 
   # assign colours
   if ("colour_index" %in% daqi_columns) {
-    daqi$colour_index <- palette_daqi("index", named = TRUE)[daqi$poll_index]
+    daqi$colour_index <- daqi_index_cols[daqi$poll_index]
   }
   if ("colour_band" %in% daqi_columns) {
-    daqi$colour_band <- palette_daqi("bands", named = TRUE)[daqi$poll_band]
+    daqi$colour_band <- daqi_band_cols[daqi$poll_band]
   }
 
   # deal with daqi column selection
@@ -320,3 +320,28 @@ daqi_column_opts <- c(
   "colour_band",
   "measurement_period"
 )
+
+# colours for DAQI index
+daqi_index_cols <-
+  stats::setNames(
+    list(
+      "#9CFF9C",
+      "#31FF00",
+      "#31CF00",
+      "#FFFF00",
+      "#FFCF00",
+      "#FF9A00",
+      "#FF6464",
+      "#FF0000",
+      "#990000",
+      "#CE30FF"
+    ),
+    1:10
+  )
+
+# colours for DAQI bands
+daqi_band_cols <-
+  stats::setNames(
+    list("#009900", "#ff9900", "#ff0000", "#990099"),
+    c("Low", "Moderate", "High", "Very High")
+  )
