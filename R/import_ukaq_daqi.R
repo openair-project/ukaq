@@ -196,10 +196,10 @@ formatDAQI <- function(
 
   # assign colours
   if ("colour_index" %in% daqi_columns) {
-    daqi$colour_index <- daqi_index_cols[daqi$poll_index]
+    daqi$colour_index <- unlist(daqi_index_cols[daqi$poll_index])
   }
   if ("colour_band" %in% daqi_columns) {
-    daqi$colour_band <- daqi_band_cols[daqi$poll_band]
+    daqi$colour_band <- unlist(daqi_band_cols[daqi$poll_band])
   }
 
   # deal with daqi column selection
