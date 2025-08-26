@@ -1,6 +1,6 @@
-# Contributing to openairmaps
+# Contributing to ukaq
 
-This outlines how to propose a change to `{openairmaps}`. 
+This outlines how to propose a change to `{ukaq}`. 
 
 ## Fixing typos
 
