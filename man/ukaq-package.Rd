@@ -10,6 +10,15 @@
 
 Importer for a myriad of United Kingdom air quality data, including monitoring station metadata, hourly measured concentrations, and pre-calculated statistics.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/openair-project/ukaq}
+  \item \url{https://openair-project.github.io/ukaq/}
+  \item Report bugs at \url{https://github.com/openair-project/ukaq/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Jack Davison \email{jack.davison@ricardo.com} (\href{https://orcid.org/0000-0003-2653-6615}{ORCID})
 
