@@ -3,4 +3,4 @@
 
 This is a lightweight package for importing UK air quality data. 
 
-It has a single import (`{rlang}`) and one suggested package (`{tibble}`).
+It has a single import (`{rlang}`) and two suggested packages (`{tibble}` and `{cli}`).

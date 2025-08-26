@@ -1,6 +1,6 @@
 Package: ukaq
 Title: Access UK Air Quality Monitoring Data
-Version: 0.0.1
+Version: 0.1.0
 Authors@R: 
     person("Jack", "Davison", , "jack.davison@ricardo.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-2653-6615"))

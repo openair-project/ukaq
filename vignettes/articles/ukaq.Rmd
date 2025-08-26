@@ -5,8 +5,7 @@ title: "Importing UK Air Quality Data"
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  eval = FALSE
+  comment = "#>"
 )
 ```
 
@@ -39,7 +38,7 @@ Arguably the most useful data made available by `{ukaq}` could be termed 'contin
 import_ukaq_measurements(c("my1", "kc1"), year = 2024L)
 ```
 
-`import_ukaq_measurements()` is clever enough to work out the specific monitoring network each site is a member of, but sometimes there can be ambiguity. The `source` argument allows this to be specified. Consider `source` as defining the pool of one or more networks `{ukaq}` will use to align each `code` with an actual monitoring station. In reality, this should only be an issue with sites that are  Consider the difference between the two outputs below.
+`import_ukaq_measurements()` is clever enough to work out the specific monitoring network each site is a member of, but sometimes there can be ambiguity. The `source` argument allows this to be specified. Consider `source` as defining the pool of one or more networks `{ukaq}` will use to align each `code` with an actual monitoring station. In reality, this should only be an issue for "locally managed" English sites which share site codes with Ricardo-managed sites (e.g., "AD1" which is the 'Aberdeen King Street' AURN site and the 'Adur - Shoreham-by-Sea' Sussex AQ site). Consider the difference between the two outputs below.
 
 ```{r}
 import_ukaq_measurements("ad1", year = 2020L)
