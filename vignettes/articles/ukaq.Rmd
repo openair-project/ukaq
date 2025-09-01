@@ -21,11 +21,11 @@ The first step when importing air quality data is to consult `import_ukaq_meta()
 import_ukaq_meta("aurn")
 ```
 
-This output can be customised using different function arguments. For example, lets find sites which measured O~3~ in 2020.
+This output can be customised using different function arguments. For example, lets find AURN sites which measured O~3~ in 2020.
 
 ```{r}
 meta <- import_ukaq_meta("aurn", year = 2020, by_pollutant = TRUE)
-meta[meta$pollutant == "O3",]
+meta[meta$pollutant == "o3",]
 ```
 
 To import data, please make a note of the relevant site codes in the "code" column (and, if appropriate, the "source" network of the data).
