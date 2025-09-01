@@ -116,15 +116,27 @@ now:</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 5 more variables: agglomeration &lt;chr&gt;, zagglom &lt;chr&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   local_authority &lt;chr&gt;, lmam_provider &lt;chr&gt;, lmam_code &lt;chr&gt;</span></span></span></code></pre></div>
 <p>This output can be customised using different function arguments. For
-example, lets find sites which measured O<sub>3</sub> in 2020.</p>
+example, lets find AURN sites which measured O<sub>3</sub> in 2020.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">meta</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_ukaq_meta.html">import_ukaq_meta</a></span><span class="op">(</span><span class="st">"aurn"</span>, year <span class="op">=</span> <span class="fl">2020</span>, by_pollutant <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">meta</span><span class="op">[</span><span class="va">meta</span><span class="op">$</span><span class="va">pollutant</span> <span class="op">==</span> <span class="st">"O3"</span>,<span class="op">]</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 0 × 16</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 16 variables: source &lt;chr&gt;, code &lt;chr&gt;, site &lt;chr&gt;, site_type &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   latitude &lt;dbl&gt;, longitude &lt;dbl&gt;, pollutant &lt;chr&gt;, start_date &lt;date&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   end_date &lt;date&gt;, ratified_to &lt;date&gt;, zone &lt;chr&gt;, agglomeration &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   zagglom &lt;chr&gt;, local_authority &lt;chr&gt;, lmam_provider &lt;chr&gt;, lmam_code &lt;chr&gt;</span></span></span></code></pre></div>
+<span><span class="va">meta</span><span class="op">[</span><span class="va">meta</span><span class="op">$</span><span class="va">pollutant</span> <span class="op">==</span> <span class="st">"o3"</span>,<span class="op">]</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 78 × 16</span></span></span>
+<span><span class="co">#&gt;    source code  site           site_type latitude longitude pollutant start_date</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> aurn   ABD   Aberdeen       Urban Ba…     57.2     -<span style="color: #BB0000;">2.09</span> o3        2003-08-01</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> aurn   AH    Aston Hill     Rural Ba…     52.5     -<span style="color: #BB0000;">3.03</span> o3        1986-06-26</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> aurn   ACTH  Auchencorth M… Rural Ba…     55.8     -<span style="color: #BB0000;">3.24</span> o3        2006-11-01</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> aurn   BAR3  Barnsley Gawb… Urban Ba…     53.6     -<span style="color: #BB0000;">1.51</span> o3        1997-07-07</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> aurn   BEL2  Belfast Centre Urban Ba…     54.6     -<span style="color: #BB0000;">5.93</span> o3        1992-03-08</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> aurn   BIRR  Birmingham A4… Urban Tr…     52.5     -<span style="color: #BB0000;">1.87</span> o3        2016-09-09</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> aurn   AGRN  Birmingham Ac… Urban Ba…     52.4     -<span style="color: #BB0000;">1.83</span> o3        2011-03-18</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> aurn   BMLD  Birmingham La… Urban Ba…     52.5     -<span style="color: #BB0000;">1.92</span> o3        2019-10-09</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> aurn   BLC2  Blackpool Mar… Urban Ba…     53.8     -<span style="color: #BB0000;">3.01</span> o3        2005-06-14</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> aurn   BORN  Bournemouth    Urban Ba…     50.7     -<span style="color: #BB0000;">1.83</span> o3        2003-02-27</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 68 more rows</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 8 more variables: end_date &lt;date&gt;, ratified_to &lt;date&gt;, zone &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   agglomeration &lt;chr&gt;, zagglom &lt;chr&gt;, local_authority &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   lmam_provider &lt;chr&gt;, lmam_code &lt;chr&gt;</span></span></span></code></pre></div>
 <p>To import data, please make a note of the relevant site codes in the
 “code” column (and, if appropriate, the “source” network of the
 data).</p>
