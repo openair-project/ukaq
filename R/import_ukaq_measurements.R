@@ -358,83 +358,34 @@ import_ukaq_measurements <-
       data$id <- NULL
 
       rownames(data) <- NULL
-
-      if (append_quality_flag) {
-        meta_by_pollutant <- import_ukaq_meta(
-          source = source,
-          by_pollutant = TRUE
-        )
-        meta_by_pollutant <- meta_by_pollutant[c(
-          "source",
-          "code",
-          "pollutant",
-          "ratified_to"
-        )]
-        meta_by_pollutant <- meta_by_pollutant[
-          !is.na(meta_by_pollutant$ratified_to),
-        ]
-        meta_by_pollutant$ratified_to <- as.POSIXct(
-          meta_by_pollutant$ratified_to,
-          tz = "GMT"
-        )
-
-        data <- merge(
-          data,
-          meta_by_pollutant,
-          by = c("source", "code", "pollutant")
-        )
-
-        data$qc <- data$date <= data$ratified_to
-
-        data$ratified_to <- NULL
-      }
     }
 
-    if (pivot == "wide" && append_quality_flag) {
-      meta_by_pollutant <- import_ukaq_meta(
-        source = source,
-        by_pollutant = TRUE
-      )
-      meta_by_pollutant <- meta_by_pollutant[c(
-        "source",
-        "code",
-        "pollutant",
-        "ratified_to"
-      )]
-      meta_by_pollutant <- meta_by_pollutant[
-        !is.na(meta_by_pollutant$ratified_to),
-      ]
-      meta_by_pollutant <- meta_by_pollutant[
-        meta_by_pollutant$pollutant %in% names(data),
-      ]
+    # append ratification flags, if requested
+    if (append_quality_flag) {
+      cutoffs <- ratification_cutoffs(source)
+      cutoff_keys <- tolower(paste(cutoffs$source, cutoffs$code, sep = "\r"))
+      data_keys <- tolower(paste(data$source, data$code, sep = "\r"))
 
-      meta_by_pollutant$source_code <- paste(
-        meta_by_pollutant$source,
-        meta_by_pollutant$code
-      )
-      data$source_code <- paste(data$source, data$code)
-      meta_by_pollutant <- meta_by_pollutant[
-        meta_by_pollutant$source_code %in% data$source_code,
-      ]
-
-      newdat <- list()
-      for (i in unique(data$source_code)) {
-        meta_i <-
-          meta_by_pollutant[meta_by_pollutant$source_code == i, ]
-        meta_i$ratified_to <- as.POSIXct(meta_i$ratified_to, tz = "GMT")
-        data_i <- data[data$source_code == i, ]
-
-        for (j in unique(meta_i$pollutant)) {
-          meta_j <- meta_i[meta_i$pollutant == j, ]
-          data_i[[paste0(j, "_qc")]] <- data_i$date <= meta_j$ratified_to
-        }
-
-        newdat <- append(newdat, list(data_i))
+      if (pivot == "long") {
+        # left join, so pollutants without a ratification date are kept (with
+        # a missing flag) rather than dropped
+        cutoff <- cutoffs$cutoff[match(
+          paste(data_keys, data$pollutant, sep = "\r"),
+          paste(cutoff_keys, cutoffs$pollutant, sep = "\r")
+        )]
+        data$qc <- data$date < cutoff
       }
 
-      data <- rbindNames(newdat)
-
-      data$source_code <- NULL
+      if (pivot == "wide") {
+        for (j in intersect(unique(cutoffs$pollutant), names(data))) {
+          id <- cutoffs$pollutant == j
+          cutoff <- cutoffs$cutoff[id][match(data_keys, cutoff_keys[id])]
+          if (all(is.na(cutoff))) {
+            next
+          }
+          data[[paste0(j, "_qc")]] <- data$date < cutoff
+        }
+      }
     }
 
     # append metadata, if requested
@@ -469,4 +420,25 @@ measURL <- function(source, code, year, dir = "") {
   url <- sub("DIR", dir, url)
 
   return(url)
+}
+
+#' Get the date-time before which each site-pollutant's data is ratified
+#' @noRd
+ratification_cutoffs <- function(source) {
+  meta <- import_ukaq_meta(source = source, by_pollutant = TRUE, .class = "df")
+  meta <- meta[
+    !is.na(meta$ratified_to),
+    c("source", "code", "pollutant", "ratified_to")
+  ]
+
+  # if a site lists a pollutant more than once, conservatively use the
+  # earliest ratification date
+  meta <- meta[order(meta$ratified_to), ]
+  meta <- meta[!duplicated(meta[c("source", "code", "pollutant")]), ]
+
+  # data are ratified up to the *end* of the ratified_to date
+  meta$cutoff <- as.POSIXct(format(meta$ratified_to + 1L), tz = "GMT")
+  meta$ratified_to <- NULL
+
+  meta
 }
