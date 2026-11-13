@@ -48,7 +48,8 @@
 #'   By default all monitoring stations are returned regardless of their
 #'   open/closed status. `year` allows users to filter sites open in a specific
 #'   year, or over a range of years. For example, `year = c(2010, 2020)` (or
-#'   `year = 2010:2020`) will return sites that were open between 2010 and 2020.
+#'   `year = 2010:2020`) will return sites that were open at any point between
+#'   2010 and 2020.
 #'
 #' @param by_pollutant *Return site-pollutant combinations?*
 #'
@@ -149,10 +150,9 @@ formatMeta <- function(meta, year = year, by_pollutant = by_pollutant) {
   meta$end_date[meta$end_date == "ongoing"] <- NA
   meta$start_date <- as.Date(meta$start_date, tz = "GMT")
   meta$end_date <- as.Date(meta$end_date, tz = "GMT")
-  if (any(!is.na(meta$ratified_to))) {
-    meta$ratified_to[meta$ratified_to == "Never"] <- NA
-    meta$ratified_to <- as.Date(meta$ratified_to, tz = "GMT")
-  }
+  meta$ratified_to <- as.character(meta$ratified_to)
+  meta$ratified_to[meta$ratified_to %in% "Never"] <- NA
+  meta$ratified_to <- as.Date(meta$ratified_to, tz = "GMT")
 
   # create zagglom column
   meta$zagglom <-
@@ -180,10 +180,14 @@ formatMeta <- function(meta, year = year, by_pollutant = by_pollutant) {
 
   # summarise if not by pollutant
   if (!by_pollutant) {
+    # one row per site per network; site names are not unique (different
+    # codes can share a name), so group by source & code
+    site_key <- paste(meta$source, meta$code, sep = "\r")
+    site_key <- factor(site_key, unique(site_key))
     newtbl <-
       do.call(
         rbind,
-        lapply(split(meta, meta$site), function(df) {
+        lapply(split(meta, site_key), function(df) {
           df[1, "start_date"] <- min(df$start_date)
           df[1, "end_date"] <- max(df$end_date)
           df <- df[1, ]
@@ -194,6 +198,7 @@ formatMeta <- function(meta, year = year, by_pollutant = by_pollutant) {
 
     # Drop unused columns
     newtbl$pollutant <- newtbl$ratified_to <- NULL
+    rownames(newtbl) <- NULL
     meta <- newtbl
   }
 
@@ -204,10 +209,14 @@ formatMeta <- function(meta, year = year, by_pollutant = by_pollutant) {
     meta$end_year[is.na(meta$end_year)] <-
       as.integer(format(Sys.Date(), "%Y"))
 
+    # keep sites open at any point in the requested year range; which() so a
+    # missing start date doesn't produce rows of NAs
     meta <-
       meta[
-        meta$start_year <= min(year) &
-          meta$end_year >= max(year),
+        which(
+          meta$start_year <= max(year) &
+            meta$end_year >= min(year)
+        ),
       ]
 
     meta$start_year <- meta$end_year <- NULL
@@ -240,17 +249,45 @@ meta_url <- function(source) {
 importMeta <- function(source) {
   meta <-
     lapply(source, function(x) {
-      df <- loadRData(meta_url(x))
+      df <- tryCatch(
+        suppressWarnings(loadRData(meta_url(x))),
+        error = function(e) NULL
+      )
+      if (is.null(df)) {
+        return(NULL)
+      }
       df$source <- tolower(x)
       if (x != "lmam") {
         df$provider <- df$pcode <- NA_character_
       }
       if (x == "lmam") {
-        df$ratified_to <- as.Date(NA, tz = "GMT")
+        df$ratified_to <- NA_character_
         df$local_authority <- NA_character_
       }
+      # keep a consistent type so rbind() works regardless of source order;
+      # parsed into a Date by formatMeta()
+      df$ratified_to <- as.character(df$ratified_to %||% NA)
       return(df)
     })
+
+  # warn about (or fail on) networks whose metadata could not be loaded
+  failed <- source[vapply(meta, is.null, logical(1))]
+  if (length(failed) == length(source)) {
+    stop(
+      "Metadata could not be imported for any of the requested sources: ",
+      paste(source, collapse = ", "),
+      "."
+    )
+  }
+  if (length(failed) > 0L) {
+    warning(
+      "Metadata could not be imported for the following source(s), ",
+      "which have been skipped: ",
+      paste(failed, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
 
   meta <- do.call(rbind, meta)
 

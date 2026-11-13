@@ -54,7 +54,7 @@ test_that("metadata is formatted", {
     tolower(names(fmtdata))
   )
 
-  colclasses <- sapply(fmtdata, class) |> unname()
+  colclasses <- unname(sapply(fmtdata, class))
 
   expect_equal(
     colclasses,
@@ -80,10 +80,23 @@ test_that("metadata is formatted", {
 
   # date filtering
 
+  # sites open at any point in the range are kept
   fmtdataDate <-
     formatMeta(rawMeta, year = 2005:2022, by_pollutant = FALSE)
 
-  expect_equal(nrow(fmtdataDate), 1L)
+  expect_equal(nrow(fmtdataDate), 3L)
+
+  # ABD closed in 2021
+  fmtdataDate2 <-
+    formatMeta(rawMeta, year = 2022:2023, by_pollutant = FALSE)
+
+  expect_equal(sort(fmtdataDate2$code), c("ABD1", "AD1"))
+
+  # only ABD was open before 2005
+  fmtdataDate3 <-
+    formatMeta(rawMeta, year = 2000:2004, by_pollutant = FALSE)
+
+  expect_equal(fmtdataDate3$code, "ABD")
 
   # by pollutant
 
@@ -113,7 +126,7 @@ test_that("metadata is formatted", {
     )
   )
 
-  colclassesPoll <- sapply(fmtdataPoll, class) |> unname()
+  colclassesPoll <- unname(sapply(fmtdataPoll, class))
 
   expect_equal(
     colclassesPoll,
@@ -136,4 +149,36 @@ test_that("metadata is formatted", {
       "character"
     )
   )
+})
+
+test_that("unavailable metadata sources are skipped with a warning", {
+  local_mocked_bindings(
+    loadRData = function(path, ...) {
+      if (grepl("AQE", path)) {
+        stop("unavailable")
+      }
+      data.frame(site_id = "ABC", parameter = "NO2")
+    }
+  )
+
+  expect_warning(
+    meta <- importMeta(c("aurn", "aqe")),
+    "aqe"
+  )
+  expect_equal(meta$source, "aurn")
+
+  expect_error(importMeta("aqe"), "any of the requested sources")
+})
+
+test_that("sites sharing a name are not collapsed", {
+  raw <- rawMeta[rawMeta$source == "aurn", ]
+  raw <- raw[!duplicated(raw$site_id), ][1, ]
+  raw2 <- raw
+  raw2$site_id <- "XYZ"
+  raw2$source <- "saqn"
+
+  fmt <- formatMeta(rbind(raw, raw2), year = NA, by_pollutant = FALSE)
+
+  expect_equal(nrow(fmt), 2L)
+  expect_setequal(fmt$code, c(raw$site_id, "XYZ"))
 })
