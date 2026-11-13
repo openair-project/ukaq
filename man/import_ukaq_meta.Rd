@@ -33,7 +33,8 @@ combination of \code{"aurn"}, \code{"aqe"}, \code{"saqn"}, \code{"waqn"}, \code{
 By default all monitoring stations are returned regardless of their
 open/closed status. \code{year} allows users to filter sites open in a specific
 year, or over a range of years. For example, \code{year = c(2010, 2020)} (or
-\code{year = 2010:2020}) will return sites that were open between 2010 and 2020.}
+\code{year = 2010:2020}) will return sites that were open at any point between
+2010 and 2020.}
 
 \item{by_pollutant}{\emph{Return site-pollutant combinations?}
 

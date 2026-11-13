@@ -80,10 +80,23 @@ test_that("metadata is formatted", {
 
   # date filtering
 
+  # sites open at any point in the range are kept
   fmtdataDate <-
     formatMeta(rawMeta, year = 2005:2022, by_pollutant = FALSE)
 
-  expect_equal(nrow(fmtdataDate), 1L)
+  expect_equal(nrow(fmtdataDate), 3L)
+
+  # ABD closed in 2021
+  fmtdataDate2 <-
+    formatMeta(rawMeta, year = 2022:2023, by_pollutant = FALSE)
+
+  expect_equal(sort(fmtdataDate2$code), c("ABD1", "AD1"))
+
+  # only ABD was open before 2005
+  fmtdataDate3 <-
+    formatMeta(rawMeta, year = 2000:2004, by_pollutant = FALSE)
+
+  expect_equal(fmtdataDate3$code, "ABD")
 
   # by pollutant
 

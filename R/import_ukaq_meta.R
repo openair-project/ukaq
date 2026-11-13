@@ -48,7 +48,8 @@
 #'   By default all monitoring stations are returned regardless of their
 #'   open/closed status. `year` allows users to filter sites open in a specific
 #'   year, or over a range of years. For example, `year = c(2010, 2020)` (or
-#'   `year = 2010:2020`) will return sites that were open between 2010 and 2020.
+#'   `year = 2010:2020`) will return sites that were open at any point between
+#'   2010 and 2020.
 #'
 #' @param by_pollutant *Return site-pollutant combinations?*
 #'
@@ -208,10 +209,14 @@ formatMeta <- function(meta, year = year, by_pollutant = by_pollutant) {
     meta$end_year[is.na(meta$end_year)] <-
       as.integer(format(Sys.Date(), "%Y"))
 
+    # keep sites open at any point in the requested year range; which() so a
+    # missing start date doesn't produce rows of NAs
     meta <-
       meta[
-        meta$start_year <= min(year) &
-          meta$end_year >= max(year),
+        which(
+          meta$start_year <= max(year) &
+            meta$end_year >= min(year)
+        ),
       ]
 
     meta$start_year <- meta$end_year <- NULL
