@@ -18,7 +18,7 @@ import_ukaq_measurements(
   append_metadata = FALSE,
   metadata_columns = c("site_type", "latitude", "longitude"),
   pivot = "wide",
-  progress = NA,
+  progress = rlang::is_interactive(),
   ...,
   .class = NULL
 )
@@ -36,8 +36,7 @@ import_ukaq_measurements(
   sites to import will filter the result for specific sites based on
   their site codes, available through
   [`import_ukaq_meta()`](https://openair-project.github.io/ukaq/reference/import_ukaq_meta.md).
-  Note that a mismatch between `code` and `source` may result in no data
-  being imported.
+  Each code can be paired with a specific network using `source`.
 
 - year:
 
@@ -51,15 +50,26 @@ import_ukaq_measurements(
 
 - source:
 
-  *One or more UK Monitoring networks from which to import data.*
+  *The UK monitoring network(s) from which to import data.*
 
   *default:* `"ukaq"`
 
-  The default, `"ukaq"`, will look for sites from any of the available
-  networks. Any combination of `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`,
-  `"niaqn"` or `"lmam"` will *only* import data from those specific
-  monitoring networks. Note that a mismatch between `code` and `source`
-  may result in no data being imported.
+  Each value should be one of `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`,
+  `"niaqn"`, `"lmam"`, or `"ukaq"`. `source` can be provided in two
+  ways:
+
+  - **A single value**, which applies to every `code`. The default,
+    `"ukaq"`, will look for each site in all of the available networks;
+    any other value will *only* import data from that network.
+
+  - **A vector the same length as `code`**, pairing each site code with
+    a network. For example, `code = c("MY1", "KC1", "ABD")` and
+    `source = c("aurn", "aurn", "saqn")`. `"ukaq"` can be used for any
+    code whose network should be worked out automatically.
+
+  When a site is found in multiple networks under `"ukaq"`, the first of
+  `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`, `"niaqn"` and `"lmam"` is used
+  and a warning is given.
 
 - data_type:
 
@@ -148,13 +158,12 @@ import_ukaq_measurements(
 
   *Show a progress bar?*
 
-  *default:* `NA`
+  *default:*
+  [`rlang::is_interactive()`](https://rlang.r-lib.org/reference/is_interactive.html)
 
   When `TRUE`, this function will print a progress bar to track
-  individual files being imported. If `FALSE` this is suppressed. If
-  `NA`, the default, the function will work out if a progress bar would
-  be useful (i.e., if the function is being run in an interactive
-  session and if more than one remote file is being accessed).
+  individual files being imported. If `FALSE` this is suppressed. By
+  default, a progress bar is shown in interactive sessions only.
 
 - ...:
 

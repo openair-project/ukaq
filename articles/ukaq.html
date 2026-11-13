@@ -189,8 +189,8 @@ Consider the difference between the two outputs below.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/import_ukaq_measurements.html">import_ukaq_measurements</a></span><span class="op">(</span><span class="st">"ad1"</span>, year <span class="op">=</span> <span class="fl">2020L</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Metadata could not be imported for the following source(s), which have</span></span>
 <span><span class="co">#&gt; been skipped: aqe.</span></span>
-<span><span class="co">#&gt; Warning: Ambiguous codes detected: AD1.</span></span>
-<span><span class="co">#&gt; Importing sites using the following order of preference: aurn, saqn, waqn, niaqn, lmam.</span></span>
+<span><span class="co">#&gt; Warning: The following codes were found in multiple networks: ad1 (saqn, lmam).</span></span>
+<span><span class="co">#&gt; The first network listed has been used for each. To choose a different network, pair each code with a network using `source`.</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 8,784 × 13</span></span></span>
 <span><span class="co">#&gt;    source date                code  site        no   no2   nox  pm10 pm2.5   pm1</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>

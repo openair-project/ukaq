@@ -19,7 +19,7 @@ import_ukaq_daqi(
   metadata_columns = c("site_type", "latitude", "longitude"),
   daqi_columns = c("concentration", "poll_index", "poll_band"),
   pivot = "long",
-  progress = NA,
+  progress = rlang::is_interactive(),
   ...,
   .class = NULL
 )
@@ -37,9 +37,9 @@ import_ukaq_daqi(
   sites to import will filter the result for specific sites based on
   their site codes, available through
   [`import_ukaq_meta()`](https://openair-project.github.io/ukaq/reference/import_ukaq_meta.md).
-  Note that a mismatch between `code` and `source` may result in no data
-  being imported. If `NULL`, the default, all available data for the
-  `year` and `source` will be returned.
+  Each code can be paired with a specific network using `source`. If
+  `NULL`, the default, all available data for the `year` and `source`
+  will be returned.
 
 - year:
 
@@ -53,16 +53,31 @@ import_ukaq_daqi(
 
 - source:
 
-  *One or more UK Monitoring networks from which to import data.*
+  *The UK monitoring network(s) from which to import data.*
 
   *default:* `"aurn"`
 
-  By default, data from the AURN is imported. Any combination of
-  `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`, or `"niaqn"` will *only* import
-  data from those specific monitoring networks, and `"ukaq"` will import
-  data from all of them. Note that a mismatch between `code` and
-  `source` may result in no data being imported. The DAQI is not
-  pre-calculated for `"lmam"` sites.
+  Each value should be one of `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`,
+  `"niaqn"`, or `"ukaq"`. The DAQI is not pre-calculated for `"lmam"`
+  sites.
+
+  If `code = NULL`, `source` can be any combination of networks, and all
+  sites in those networks are returned. `"ukaq"` returns all networks.
+
+  If `code` is provided, `source` can be either:
+
+  - **A single value**, which applies to every `code`. `"ukaq"` will
+    look for each site in all of the available networks; any other value
+    will *only* import data from that network.
+
+  - **A vector the same length as `code`**, pairing each site code with
+    a network. For example, `code = c("MY1", "KC1", "ABD")` and
+    `source = c("aurn", "aurn", "saqn")`. `"ukaq"` can be used for any
+    code whose network should be worked out automatically.
+
+  When a site is found in multiple networks under `"ukaq"`, the first of
+  `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"` and `"niaqn"` is used and a
+  warning is given.
 
 - pollutant:
 
@@ -132,13 +147,12 @@ import_ukaq_daqi(
 
   *Show a progress bar?*
 
-  *default:* `NA`
+  *default:*
+  [`rlang::is_interactive()`](https://rlang.r-lib.org/reference/is_interactive.html)
 
   When `TRUE`, this function will print a progress bar to track
-  individual files being imported. If `FALSE` this is suppressed. If
-  `NA`, the default, the function will work out if a progress bar would
-  be useful (i.e., if the function is being run in an interactive
-  session and if more than one remote file is being accessed).
+  individual files being imported. If `FALSE` this is suppressed. By
+  default, a progress bar is shown in interactive sessions only.
 
 - ...:
 

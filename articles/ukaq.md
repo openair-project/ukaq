@@ -115,8 +115,8 @@ difference between the two outputs below.
 import_ukaq_measurements("ad1", year = 2020L)
 #> Warning: Metadata could not be imported for the following source(s), which have
 #> been skipped: aqe.
-#> Warning: Ambiguous codes detected: AD1.
-#> Importing sites using the following order of preference: aurn, saqn, waqn, niaqn, lmam.
+#> Warning: The following codes were found in multiple networks: ad1 (saqn, lmam).
+#> The first network listed has been used for each. To choose a different network, pair each code with a network using `source`.
 #> # A tibble: 8,784 × 13
 #>    source date                code  site        no   no2   nox  pm10 pm2.5   pm1
 #>    <chr>  <dttm>              <fct> <chr>    <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
