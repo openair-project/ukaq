@@ -156,3 +156,16 @@ test_that("unavailable metadata sources are skipped with a warning", {
 
   expect_error(importMeta("aqe"), "any of the requested sources")
 })
+
+test_that("sites sharing a name are not collapsed", {
+  raw <- rawMeta[rawMeta$source == "aurn", ]
+  raw <- raw[!duplicated(raw$site_id), ][1, ]
+  raw2 <- raw
+  raw2$site_id <- "XYZ"
+  raw2$source <- "saqn"
+
+  fmt <- formatMeta(rbind(raw, raw2), year = NA, by_pollutant = FALSE)
+
+  expect_equal(nrow(fmt), 2L)
+  expect_setequal(fmt$code, c(raw$site_id, "XYZ"))
+})

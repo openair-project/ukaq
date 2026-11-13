@@ -180,10 +180,14 @@ formatMeta <- function(meta, year = year, by_pollutant = by_pollutant) {
 
   # summarise if not by pollutant
   if (!by_pollutant) {
+    # one row per site per network; site names are not unique (different
+    # codes can share a name), so group by source & code
+    site_key <- paste(meta$source, meta$code, sep = "\r")
+    site_key <- factor(site_key, unique(site_key))
     newtbl <-
       do.call(
         rbind,
-        lapply(split(meta, meta$site), function(df) {
+        lapply(split(meta, site_key), function(df) {
           df[1, "start_date"] <- min(df$start_date)
           df[1, "end_date"] <- max(df$end_date)
           df <- df[1, ]
@@ -194,6 +198,7 @@ formatMeta <- function(meta, year = year, by_pollutant = by_pollutant) {
 
     # Drop unused columns
     newtbl$pollutant <- newtbl$ratified_to <- NULL
+    rownames(newtbl) <- NULL
     meta <- newtbl
   }
 
