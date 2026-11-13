@@ -183,8 +183,8 @@ formatDAQI <- function(
   # remove factors
   daqi <- factor_to_char(daqi)
 
-  # create poll band column
-  if ("poll_band" %in% daqi_columns) {
+  # create poll band column (also needed to assign band colours)
+  if (any(c("poll_band", "colour_band") %in% daqi_columns)) {
     daqi <- append_daqi_bands(daqi)
   }
 
@@ -199,10 +199,11 @@ formatDAQI <- function(
 
   # assign colours
   if ("colour_index" %in% daqi_columns) {
-    daqi$colour_index <- unlist(daqi_index_cols[daqi$poll_index])
+    daqi$colour_index <- unname(daqi_index_cols[daqi$poll_index])
   }
   if ("colour_band" %in% daqi_columns) {
-    daqi$colour_band <- unlist(daqi_band_cols[daqi$poll_band])
+    daqi$colour_band <-
+      unname(daqi_band_cols[as.character(daqi$poll_band)])
   }
 
   # deal with daqi column selection
@@ -300,17 +301,14 @@ daqi_url <- function(source, year) {
 #' Add DAQI bands column before "measurement_period" col
 #' @noRd
 append_daqi_bands <- function(data) {
-  data$poll_band <- ifelse(
-    data$poll_index %in% 1:3,
-    "Low",
-    ifelse(
-      data$poll_index %in% 4:6,
-      "Moderate",
-      ifelse(data$poll_index %in% 7:9, "High", "Very High")
-    )
-  )
+  # indices outside 1-10 (incl. NA) get an NA band
+  band <- rep(NA_character_, nrow(data))
+  band[data$poll_index %in% 1:3] <- "Low"
+  band[data$poll_index %in% 4:6] <- "Moderate"
+  band[data$poll_index %in% 7:9] <- "High"
+  band[data$poll_index %in% 10] <- "Very High"
   data$poll_band <-
-    factor(data$poll_band, c("Low", "Moderate", "High", "Very High"))
+    factor(band, c("Low", "Moderate", "High", "Very High"))
 
   data <-
     data[, c(
@@ -334,7 +332,7 @@ daqi_column_opts <- c(
 # colours for DAQI index
 daqi_index_cols <-
   stats::setNames(
-    list(
+    c(
       "#9CFF9C",
       "#31FF00",
       "#31CF00",
@@ -352,6 +350,6 @@ daqi_index_cols <-
 # colours for DAQI bands
 daqi_band_cols <-
   stats::setNames(
-    list("#009900", "#ff9900", "#ff0000", "#990099"),
+    c("#009900", "#ff9900", "#ff0000", "#990099"),
     c("Low", "Moderate", "High", "Very High")
   )
