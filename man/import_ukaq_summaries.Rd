@@ -13,7 +13,7 @@ import_ukaq_summaries(
   append_metadata = FALSE,
   metadata_columns = c("site_type", "latitude", "longitude"),
   pivot = "wide",
-  progress = NA,
+  progress = rlang::is_interactive(),
   ...,
   .class = NULL
 )
@@ -102,13 +102,11 @@ prefer their data in.}
 
 \item{progress}{\emph{Show a progress bar?}
 
-\emph{default:} \code{NA}
+\emph{default:} \code{rlang::is_interactive()}
 
 When \code{TRUE}, this function will print a progress bar to track individual
-files being imported. If \code{FALSE} this is suppressed. If \code{NA}, the default,
-the function will work out if a progress bar would be useful (i.e., if the
-function is being run in an interactive session and if more than one remote
-file is being accessed).}
+files being imported. If \code{FALSE} this is suppressed. By default, a progress
+bar is shown in interactive sessions only.}
 
 \item{...}{\emph{Not used.}}
 

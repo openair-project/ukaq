@@ -88,7 +88,7 @@ import_ukaq_daqi <-
       "poll_band"
     ),
     pivot = "long",
-    progress = NA,
+    progress = rlang::is_interactive(),
     ...,
     .class = NULL
   ) {
@@ -145,14 +145,6 @@ import_ukaq_daqi <-
 importDAQI <- function(year, source, progress) {
   grid <-
     expand.grid(year = year, source = source, stringsAsFactors = FALSE)
-
-  # deal w/ progress opt if NA
-  if (is.na(progress)) {
-    progress <- FALSE
-    if (nrow(grid) > 1L && rlang::is_interactive()) {
-      progress <- TRUE
-    }
-  }
 
   if (progress) {
     pb <- pb_init(name = "Importing DAQI", x = nrow(grid))

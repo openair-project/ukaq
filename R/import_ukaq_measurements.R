@@ -118,13 +118,11 @@
 #'
 #' @param progress *Show a progress bar?*
 #'
-#'   *default:* `NA`
+#'   *default:* `rlang::is_interactive()`
 #'
 #'   When `TRUE`, this function will print a progress bar to track individual
-#'   files being imported. If `FALSE` this is suppressed. If `NA`, the default,
-#'   the function will work out if a progress bar would be useful (i.e., if the
-#'   function is being run in an interactive session and if more than one remote
-#'   file is being accessed).
+#'   files being imported. If `FALSE` this is suppressed. By default, a progress
+#'   bar is shown in interactive sessions only.
 #'
 #' @return a `data.frame`
 #'
@@ -146,7 +144,7 @@ import_ukaq_measurements <-
     append_metadata = FALSE,
     metadata_columns = c("site_type", "latitude", "longitude"),
     pivot = "wide",
-    progress = NA,
+    progress = rlang::is_interactive(),
     ...,
     .class = NULL
   ) {
@@ -202,14 +200,6 @@ import_ukaq_measurements <-
           return(df)
         })
       )
-
-    # deal w/ progress opt if NA
-    if (is.na(progress)) {
-      progress <- FALSE
-      if (nrow(grid) > 1L && rlang::is_interactive()) {
-        progress <- TRUE
-      }
-    }
 
     if (progress) {
       pb <- pb_init(name = "Importing Measurements", x = nrow(grid))

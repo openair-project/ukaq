@@ -67,7 +67,7 @@ import_ukaq_summaries <-
     append_metadata = FALSE,
     metadata_columns = c("site_type", "latitude", "longitude"),
     pivot = "wide",
-    progress = NA,
+    progress = rlang::is_interactive(),
     ...,
     .class = NULL
   ) {
@@ -244,14 +244,6 @@ summary_url <-
 #' Import annual/monhtly summaries
 #' @noRd
 importSummaries <- function(grid, data_type, progress) {
-  # deal w/ progress opt if NA
-  if (is.na(progress)) {
-    progress <- FALSE
-    if (nrow(grid) > 1L && rlang::is_interactive()) {
-      progress <- TRUE
-    }
-  }
-
   if (progress) {
     pb <- pb_init(name = "Importing Summaries", x = nrow(grid))
     on.exit(pb_close(pb))
