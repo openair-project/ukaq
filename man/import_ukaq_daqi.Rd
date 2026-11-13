@@ -122,18 +122,18 @@ either \code{"tbl"} or \code{"df"}, which sets the return class to be \code{tbl_
 a \code{data.frame}
 }
 \description{
-Imports \href{https://uk-air.defra.gov.uk/air-pollution/daqi}{UK Daily Air Quality Index (DAQI)} data for selected
-pollutants, years, and sites. Returned information can include the relevant
-daily statistic (e.g., daily average for PM10), the index (1:10), the band
-(Low, Moderate, High, or Very High), and the colour associated with the index
-and/or band.
+Imports \href{https://www.gov.uk/government/publications/health-effects-of-air-pollution}{UK Daily Air Quality Index (DAQI)}
+data for selected pollutants, years, and sites. Returned information can
+include the relevant daily statistic (e.g., daily average for PM10), the
+index (1:10), the band (Low, Moderate, High, or Very High), and the colour
+associated with the index and/or band.
 }
 \references{
-With thanks to Trevor Davies and \href{https://www.ricardo.com/en}{Ricardo Plc} for preparing and hosting the data
+With thanks to Trevor Davies and \href{https://www.wsp.com/en-gb}{WSP UK&I} for preparing and hosting the data
 }
 \seealso{
-\url{https://uk-air.defra.gov.uk/air-pollution/daqi} for more
-information about the DAQI.
+\url{https://www.gov.uk/government/publications/health-effects-of-air-pollution}
+for more information about the DAQI.
 }
 \author{
 Jack Davison, David Carslaw

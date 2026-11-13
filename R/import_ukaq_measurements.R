@@ -43,10 +43,9 @@
 #'  *default:* `TRUE`
 #'
 #'   Certain networks such as the AURN are accompanied by modelled
-#'   meteorological data obtained from the WRF model (See
-#'   <https://uk-air.defra.gov.uk/research/air-quality-modelling?view=modelling>).
-#'   Setting `append_meteorology = FALSE` will remove this, which may be useful
-#'   if joining measured meteorological data sourced from elsewhere.
+#'   meteorological data obtained from the WRF model. Setting
+#'   `append_meteorology = FALSE` will remove this, which may be useful if
+#'   joining measured meteorological data sourced from elsewhere.
 #'
 #' @param append_quality_flag *Append ratification indicators to the dataframe?*
 #'
@@ -121,8 +120,8 @@
 #'
 #' @author Jack Davison, David Carslaw
 #'
-#' @references With thanks to Trevor Davies and [Ricardo
-#'   Plc](https://www.ricardo.com/en) for preparing and hosting the data
+#' @references With thanks to Trevor Davies and [WSP
+#'   UK&I](https://www.wsp.com/en-gb) for preparing and hosting the data
 #'
 #' @export
 import_ukaq_measurements <-

@@ -1,11 +1,11 @@
 #' Import UK Daily Air Quality Index Data
 #'
 #' Imports [UK Daily Air Quality Index
-#' (DAQI)](https://uk-air.defra.gov.uk/air-pollution/daqi) data for selected
-#' pollutants, years, and sites. Returned information can include the relevant
-#' daily statistic (e.g., daily average for PM10), the index (1:10), the band
-#' (Low, Moderate, High, or Very High), and the colour associated with the index
-#' and/or band.
+#' (DAQI)](https://www.gov.uk/government/publications/health-effects-of-air-pollution)
+#' data for selected pollutants, years, and sites. Returned information can
+#' include the relevant daily statistic (e.g., daily average for PM10), the
+#' index (1:10), the band (Low, Moderate, High, or Very High), and the colour
+#' associated with the index and/or band.
 #'
 #' @param source *One or more UK Monitoring networks from which to import data.*
 #'
@@ -51,11 +51,12 @@
 #'
 #' @author Jack Davison, David Carslaw
 #'
-#' @references With thanks to Trevor Davies and [Ricardo
-#'   Plc](https://www.ricardo.com/en) for preparing and hosting the data
+#' @references With thanks to Trevor Davies and [WSP
+#'   UK&I](https://www.wsp.com/en-gb) for preparing and hosting the data
 #'
-#' @seealso <https://uk-air.defra.gov.uk/air-pollution/daqi> for more
-#'   information about the DAQI.
+#' @seealso
+#'   <https://www.gov.uk/government/publications/health-effects-of-air-pollution>
+#'   for more information about the DAQI.
 #'
 #' @export
 import_ukaq_daqi <-

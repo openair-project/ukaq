@@ -17,7 +17,7 @@
 #'
 #' - **site** *<chr>*: The site name, which is more human-readable than the site code.
 #'
-#' - **site_type** *<chr>*: A description of the site environment. Read more at <https://uk-air.defra.gov.uk/networks/site-types>.
+#' - **site_type** *<chr>*: A description of the site environment.
 #'
 #' - **latitude** and **longitude** *<num>*: The coordinates of the monitoring station, using the World Geodetic System (<https://epsg.io/4326>).
 #'
@@ -79,8 +79,8 @@
 #'
 #' @author Jack Davison, David Carslaw
 #'
-#' @references With thanks to Trevor Davies and [Ricardo
-#'   Plc](https://www.ricardo.com/en) for preparing and hosting the data
+#' @references With thanks to Trevor Davies and [WSP
+#'   UK&I](https://www.wsp.com/en-gb) for preparing and hosting the data
 #'
 #' @export
 import_ukaq_meta <-

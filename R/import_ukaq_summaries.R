@@ -28,8 +28,8 @@
 #'
 #' @author Jack Davison, David Carslaw
 #'
-#' @references With thanks to Trevor Davies and [Ricardo
-#'   Plc](https://www.ricardo.com/en) for preparing and hosting the data
+#' @references With thanks to Trevor Davies and [WSP
+#'   UK&I](https://www.wsp.com/en-gb) for preparing and hosting the data
 #'
 #' @export
 import_ukaq_summaries <-

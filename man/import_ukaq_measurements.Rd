@@ -75,10 +75,9 @@ specific combination of the pollutants to be returned instead.}
 \emph{default:} \code{TRUE}
 
 Certain networks such as the AURN are accompanied by modelled
-meteorological data obtained from the WRF model (See
-\url{https://uk-air.defra.gov.uk/research/air-quality-modelling?view=modelling}).
-Setting \code{append_meteorology = FALSE} will remove this, which may be useful
-if joining measured meteorological data sourced from elsewhere.}
+meteorological data obtained from the WRF model. Setting
+\code{append_meteorology = FALSE} will remove this, which may be useful if
+joining measured meteorological data sourced from elsewhere.}
 
 \item{append_quality_flag}{\emph{Append ratification indicators to the dataframe?}
 
@@ -144,7 +143,7 @@ function defaults to importing hourly data, but has options to instead return
 other common time periods.
 }
 \references{
-With thanks to Trevor Davies and \href{https://www.ricardo.com/en}{Ricardo Plc} for preparing and hosting the data
+With thanks to Trevor Davies and \href{https://www.wsp.com/en-gb}{WSP UK&I} for preparing and hosting the data
 }
 \author{
 Jack Davison, David Carslaw

@@ -118,7 +118,7 @@ monthly/annual data capture and additional relevant columns (e.g., the month
 as a character for monthly data).
 }
 \references{
-With thanks to Trevor Davies and \href{https://www.ricardo.com/en}{Ricardo Plc} for preparing and hosting the data
+With thanks to Trevor Davies and \href{https://www.wsp.com/en-gb}{WSP UK&I} for preparing and hosting the data
 }
 \author{
 Jack Davison, David Carslaw
