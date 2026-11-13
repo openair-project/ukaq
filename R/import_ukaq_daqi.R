@@ -7,16 +7,30 @@
 #' index (1:10), the band (Low, Moderate, High, or Very High), and the colour
 #' associated with the index and/or band.
 #'
-#' @param source *One or more UK Monitoring networks from which to import data.*
+#' @param source *The UK monitoring network(s) from which to import data.*
 #'
 #'   *default:* `"aurn"`
 #'
-#'   By default, data from the AURN is imported. Any combination of `"aurn"`,
-#'   `"aqe"`, `"saqn"`, `"waqn"`, or `"niaqn"` will *only* import data from
-#'   those specific monitoring networks, and `"ukaq"` will import data from all
-#'   of them.
-#'   Note that a mismatch between `code` and `source` may result in no data
-#'   being imported. The DAQI is not pre-calculated for `"lmam"` sites.
+#'   Each value should be one of `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`,
+#'   `"niaqn"`, or `"ukaq"`. The DAQI is not pre-calculated for `"lmam"` sites.
+#'
+#'   If `code = NULL`, `source` can be any combination of networks, and all
+#'   sites in those networks are returned. `"ukaq"` returns all networks.
+#'
+#'   If `code` is provided, `source` can be either:
+#'
+#'   - **A single value**, which applies to every `code`. `"ukaq"` will look for
+#'   each site in all of the available networks; any other value will *only*
+#'   import data from that network.
+#'
+#'   - **A vector the same length as `code`**, pairing each site code with a
+#'   network. For example, `code = c("MY1", "KC1", "ABD")` and `source =
+#'   c("aurn", "aurn", "saqn")`. `"ukaq"` can be used for any code whose
+#'   network should be worked out automatically.
+#'
+#'   When a site is found in multiple networks under `"ukaq"`, the first of
+#'   `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"` and `"niaqn"` is used and a warning
+#'   is given.
 #'
 #' @param pollutant *One or more DAQI pollutants for which to import data.*
 #'
@@ -90,13 +104,25 @@ import_ukaq_daqi <-
     pivot <- match_pivot(pivot)
     metadata_columns <-
       rlang::arg_match(metadata_columns, metadata_column_names, multiple = TRUE)
-    source <-
-      match_source(source = source, network_names = ukaq_network_names_nolocal)
     daqi_columns <-
       rlang::arg_match(daqi_columns, daqi_column_opts, multiple = TRUE)
 
+    # work out which networks to import
+    if (is.null(code)) {
+      networks <-
+        match_source(
+          source = source,
+          network_names = ukaq_network_names_nolocal
+        )
+    } else {
+      networks <- pair_networks(
+        pair_code_source(code, source, ukaq_network_names_nolocal),
+        ukaq_network_names_nolocal
+      )
+    }
+
     # import data
-    daqi <- importDAQI(year = year, source = source, progress = progress)
+    daqi <- importDAQI(year = year, source = networks, progress = progress)
 
     # format
     daqi <-
@@ -195,7 +221,7 @@ formatDAQI <- function(
   }
 
   if (!is.null(code)) {
-    daqi <- daqi[tolower(daqi$code) %in% tolower(code), ]
+    daqi <- filter_code_source(daqi, code, source, ukaq_network_names_nolocal)
   }
 
   # assign colours
@@ -222,7 +248,7 @@ formatDAQI <- function(
     daqi <-
       append_metadata_cols(
         daqi,
-        source = source,
+        source = unique(daqi$source),
         metadata_columns = metadata_columns
       )
   }

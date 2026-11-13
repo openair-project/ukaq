@@ -20,7 +20,7 @@ test_that("annual works", {
   codetest <- formatSummary(
     rawSummaryAnnual,
     code = c("abd", "abd7"),
-    source = c("aurn", "lmam"),
+    source = "aurn",
     data_type = "annual",
     pollutant = NULL,
     append_metadata = FALSE,
@@ -118,7 +118,7 @@ test_that("monthly works", {
   codetest <- formatSummary(
     rawSummaryMonthly,
     code = c("abd", "abd7"),
-    source = c("aurn", "lmam"),
+    source = "aurn",
     data_type = "monthly",
     pollutant = NULL,
     append_metadata = FALSE,
@@ -243,4 +243,33 @@ test_that("wide pollutant filtering uses exact names", {
   )
 
   expect_false(any(c("no2", "nox") %in% names(no)))
+})
+
+test_that("codes can be paired with networks", {
+  paired <- formatSummary(
+    rawSummaryAnnual,
+    code = c("abd", "bord"),
+    source = c("aurn", "lmam"),
+    data_type = "annual",
+    pollutant = NULL,
+    append_metadata = FALSE,
+    metadata_columns = c("latitude", "longitude"),
+    pivot = "wide"
+  )
+
+  expect_equal(paired$code, c("ABD", "BORD"))
+  expect_equal(paired$source, c("aurn", "lmam"))
+
+  auto <- formatSummary(
+    rawSummaryAnnual,
+    code = c("abd", "bord"),
+    source = "ukaq",
+    data_type = "annual",
+    pollutant = NULL,
+    append_metadata = FALSE,
+    metadata_columns = c("latitude", "longitude"),
+    pivot = "wide"
+  )
+
+  expect_equal(auto$source, c("aurn", "lmam"))
 })

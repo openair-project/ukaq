@@ -10,8 +10,8 @@
 #'
 #'   `code` expects a vector of character values. It defines the specific sites
 #'   to import will filter the result for specific sites based on their site
-#'   codes, available through [import_ukaq_meta()]. Note that a mismatch between
-#'   `code` and `source` may result in no data being imported.
+#'   codes, available through [import_ukaq_meta()]. Each code can be paired
+#'   with a specific network using `source`.
 #'
 #' @param year *A year, or range of years, from which to import data.*
 #'
@@ -21,15 +21,25 @@
 #'   (`2020`), a selection of specific years (c(`2020, 2021, 2022`)), or a range
 #'   of years (`2020:2025`).
 #'
-#' @param source *One or more UK Monitoring networks from which to import data.*
+#' @param source *The UK monitoring network(s) from which to import data.*
 #'
 #'   *default:* `"ukaq"`
 #'
-#'   The default, `"ukaq"`, will look for sites from any of the available
-#'   networks. Any combination of `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`,
-#'   `"niaqn"` or `"lmam"` will *only* import data from those specific
-#'   monitoring networks. Note that a mismatch between `code` and `source` may
-#'   result in no data being imported.
+#'   Each value should be one of `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`,
+#'   `"niaqn"`, `"lmam"`, or `"ukaq"`. `source` can be provided in two ways:
+#'
+#'   - **A single value**, which applies to every `code`. The default,
+#'   `"ukaq"`, will look for each site in all of the available networks; any
+#'   other value will *only* import data from that network.
+#'
+#'   - **A vector the same length as `code`**, pairing each site code with a
+#'   network. For example, `code = c("MY1", "KC1", "ABD")` and `source =
+#'   c("aurn", "aurn", "saqn")`. `"ukaq"` can be used for any code whose
+#'   network should be worked out automatically.
+#'
+#'   When a site is found in multiple networks under `"ukaq"`, the first of
+#'   `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`, `"niaqn"` and `"lmam"` is used and a
+#'   warning is given.
 #'
 #' @param pollutant *One or more pollutants for which to import data.*
 #'
@@ -142,8 +152,8 @@ import_ukaq_measurements <-
   ) {
     rlang::check_dots_empty()
 
-    # ensure 'source' is correct
-    source <- match_source(source, ukaq_network_names)
+    # pair each code with a network (or "ukaq", to be worked out)
+    pairs <- pair_code_source(code, source, ukaq_network_names)
 
     # ensure data_type matches
     data_type <-
@@ -162,60 +172,23 @@ import_ukaq_measurements <-
     # ensure pivot arg matches
     pivot <- match_pivot(pivot)
 
-    # get metadata
-    meta <- import_ukaq_meta(source = source)
+    # get metadata for the networks needed to resolve the codes
+    meta <- import_ukaq_meta(
+      source = pair_networks(pairs, ukaq_network_names),
+      .class = "df"
+    )
 
-    # drop any sources whose metadata were unavailable, so later calls to
-    # import_ukaq_meta() don't repeatedly warn about them
-    source <- source[source %in% meta$source]
+    # resolve each code to a single network
+    resolved <- resolve_code_source(pairs, meta, ukaq_network_names)
+    meta_final <- meta[
+      match(
+        tolower(paste(resolved$code, resolved$source, sep = "\r")),
+        tolower(paste(meta$code, meta$source, sep = "\r"))
+      ),
+    ]
 
-    # order metadata by user-defined order
-    meta$source <- factor(meta$source, source)
-    meta <- meta[order(meta$source), ]
-
-    # filter metadata for codes
-    meta_with_code <- meta[tolower(meta$code) %in% tolower(code), ]
-
-    # flag codes not found in the metadata
-    missing_codes <- code[!tolower(code) %in% tolower(meta_with_code$code)]
-    if (length(missing_codes) == length(code)) {
-      stop(
-        "None of the requested codes were found for source(s) ",
-        paste(source, collapse = ", "),
-        ": ",
-        paste(code, collapse = ", "),
-        ". See import_ukaq_meta() for valid site codes."
-      )
-    }
-    if (length(missing_codes) > 0L) {
-      warning(
-        "The following codes were not found for source(s) ",
-        paste(source, collapse = ", "),
-        " and have been skipped: ",
-        paste(missing_codes, collapse = ", "),
-        ".",
-        call. = FALSE
-      )
-    }
-
-    # ensure one line per code
-    # (meta is already ordered by source preference)
-    is_dupe <- duplicated(meta_with_code$code)
-    meta_final <- meta_with_code[!is_dupe, ]
-
-    # flag if there were any ambiguous codes
-    if (any(is_dupe)) {
-      id <- unique(meta_with_code$code[is_dupe])
-
-      warning(
-        "Ambiguous codes detected: ",
-        paste(id, collapse = ", "),
-        ".\nImporting sites using the following order of preference: ",
-        paste(source, collapse = ", "),
-        ".",
-        call. = FALSE
-      )
-    }
+    # only these networks are needed for later metadata (e.g., QC flags)
+    source <- unique(meta_final$source)
 
     # get a grid of metadata for each year
     grid <-

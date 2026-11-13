@@ -1,7 +1,15 @@
 
 # ukaq (development version)
 
+## New features
+
+- `import_ukaq_measurements()`, `import_ukaq_summaries()` and `import_ukaq_daqi()` can now pair site codes with specific networks. When `code` is provided, `source` can be either a single value applied to every code (as before), or a vector the same length as `code`, e.g., `code = c("MY1", "KC1", "ABD")` and `source = c("aurn", "aurn", "saqn")`. Any element can be `"ukaq"` to let the network be worked out automatically.
+
 ## Breaking changes
+
+- When `code` is provided, `source` must now be length 1 or the same length as `code`. Previously, multiple networks were treated as an order of preference (e.g., `source = c("saqn", "aurn")`); instead, use `source = "ukaq"` to have the network found automatically, or pair each code with its network. Codes found in multiple networks under `"ukaq"` use the first of `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`, `"niaqn"` and `"lmam"`, with a warning.
+
+- `import_ukaq_summaries()` and `import_ukaq_daqi()` now return a code from a single network when `code` is provided. Previously, a code present in multiple networks (e.g., `"ABD"` in the AURN and SAQN) was returned once for each network.
 
 - `import_ukaq_daqi(pivot = "wide")` now retains the `source` column. Previously this was dropped, which collapsed sites reported by more than one network and prevented `append_metadata = TRUE` from working.
 

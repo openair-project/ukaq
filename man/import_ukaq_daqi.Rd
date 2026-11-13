@@ -25,9 +25,9 @@ import_ukaq_daqi(
 
 \code{code} expects a vector of character values. It defines the specific sites
 to import will filter the result for specific sites based on their site
-codes, available through \code{\link[=import_ukaq_meta]{import_ukaq_meta()}}. Note that a mismatch between
-\code{code} and \code{source} may result in no data being imported. If \code{NULL}, the
-default, all available data for the \code{year} and \code{source} will be returned.}
+codes, available through \code{\link[=import_ukaq_meta]{import_ukaq_meta()}}. Each code can be paired
+with a specific network using \code{source}. If \code{NULL}, the default, all
+available data for the \code{year} and \code{source} will be returned.}
 
 \item{year}{\emph{A year, or range of years, from which to import data.}
 
@@ -37,16 +37,29 @@ default, all available data for the \code{year} and \code{source} will be return
 (\code{2020}), a selection of specific years (c(\verb{2020, 2021, 2022})), or a range
 of years (\code{2020:2025}).}
 
-\item{source}{\emph{One or more UK Monitoring networks from which to import data.}
+\item{source}{\emph{The UK monitoring network(s) from which to import data.}
 
 \emph{default:} \code{"aurn"}
 
-By default, data from the AURN is imported. Any combination of \code{"aurn"},
-\code{"aqe"}, \code{"saqn"}, \code{"waqn"}, or \code{"niaqn"} will \emph{only} import data from
-those specific monitoring networks, and \code{"ukaq"} will import data from all
-of them.
-Note that a mismatch between \code{code} and \code{source} may result in no data
-being imported. The DAQI is not pre-calculated for \code{"lmam"} sites.}
+Each value should be one of \code{"aurn"}, \code{"aqe"}, \code{"saqn"}, \code{"waqn"},
+\code{"niaqn"}, or \code{"ukaq"}. The DAQI is not pre-calculated for \code{"lmam"} sites.
+
+If \code{code = NULL}, \code{source} can be any combination of networks, and all
+sites in those networks are returned. \code{"ukaq"} returns all networks.
+
+If \code{code} is provided, \code{source} can be either:
+\itemize{
+\item \strong{A single value}, which applies to every \code{code}. \code{"ukaq"} will look for
+each site in all of the available networks; any other value will \emph{only}
+import data from that network.
+\item \strong{A vector the same length as \code{code}}, pairing each site code with a
+network. For example, \code{code = c("MY1", "KC1", "ABD")} and \code{source =   c("aurn", "aurn", "saqn")}. \code{"ukaq"} can be used for any code whose
+network should be worked out automatically.
+}
+
+When a site is found in multiple networks under \code{"ukaq"}, the first of
+\code{"aurn"}, \code{"aqe"}, \code{"saqn"}, \code{"waqn"} and \code{"niaqn"} is used and a warning
+is given.}
 
 \item{pollutant}{\emph{One or more DAQI pollutants for which to import data.}
 
