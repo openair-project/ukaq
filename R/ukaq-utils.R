@@ -34,12 +34,20 @@ loadRData <- function(path, object) {
     return(table)
   }
 
-  # if multiple objects, get the one they want
-  id <- x
-  id[1] <- paste0(x[1], "_hourly")
-  id <- sub("^[^_]+_[^_]+_(\\.*)", "\\1", id)
+  # if multiple objects, get the one they want. Objects are named
+  # "{CODE}_{YEAR}" (hourly) and "{CODE}_{YEAR}_{suffix}" (everything else)
+  prefix <- x[which.min(nchar(x))]
+  id <- substring(x, nchar(prefix) + 2L)
+  object_suffixes <- c(
+    "hourly" = "",
+    "daily" = "daily_mean",
+    "15_min" = "15min",
+    "8_hour" = "8hour_mean",
+    "24_hour" = "24hour_mean",
+    "daily_max_8" = "daily_max_8hour"
+  )
   if (object != "daily") {
-    obj <- x[which(id == object)]
+    obj <- x[which(id == object_suffixes[[object]])]
     table <- get(obj)
   } else {
     table <- get(x[which(id == "daily_mean")])
