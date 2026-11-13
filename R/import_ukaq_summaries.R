@@ -11,19 +11,34 @@
 #'
 #'   `code` expects a vector of character values. It defines the specific sites
 #'   to import will filter the result for specific sites based on their site
-#'   codes, available through [import_ukaq_meta()]. Note that a mismatch between
-#'   `code` and `source` may result in no data being imported. If `NULL`, the
-#'   default, all available data for the `year` and `source` will be returned.
+#'   codes, available through [import_ukaq_meta()]. Each code can be paired
+#'   with a specific network using `source`. If `NULL`, the default, all
+#'   available data for the `year` and `source` will be returned.
 #'
-#' @param source *One or more UK Monitoring networks from which to import data.*
+#' @param source *The UK monitoring network(s) from which to import data.*
 #'
 #'   *default:* `"aurn"`
 #'
-#'   By default, data from the AURN is imported. Any combination of `"aurn"`,
-#'   `"aqe"`, `"saqn"`, `"waqn"`, `"niaqn"` or `"lmam"` will *only* import data
-#'   from those specific monitoring networks, and `"ukaq"` will import data
-#'   from all of them. Note that a mismatch between `code` and `source` may
-#'   result in no data being imported.
+#'   Each value should be one of `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`,
+#'   `"niaqn"`, `"lmam"`, or `"ukaq"`.
+#'
+#'   If `code = NULL`, `source` can be any combination of networks, and all
+#'   sites in those networks are returned. `"ukaq"` returns all networks.
+#'
+#'   If `code` is provided, `source` can be either:
+#'
+#'   - **A single value**, which applies to every `code`. `"ukaq"` will look for
+#'   each site in all of the available networks; any other value will *only*
+#'   import data from that network.
+#'
+#'   - **A vector the same length as `code`**, pairing each site code with a
+#'   network. For example, `code = c("MY1", "KC1", "ABD")` and `source =
+#'   c("aurn", "aurn", "saqn")`. `"ukaq"` can be used for any code whose
+#'   network should be worked out automatically.
+#'
+#'   When a site is found in multiple networks under `"ukaq"`, the first of
+#'   `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`, `"niaqn"` and `"lmam"` is used and a
+#'   warning is given.
 #'
 #' @param data_type *What type of summary should be returned?*
 #'
@@ -52,7 +67,7 @@ import_ukaq_summaries <-
     append_metadata = FALSE,
     metadata_columns = c("site_type", "latitude", "longitude"),
     pivot = "wide",
-    progress = NA,
+    progress = rlang::is_interactive(),
     ...,
     .class = NULL
   ) {
@@ -61,14 +76,23 @@ import_ukaq_summaries <-
     pivot <- match_pivot(pivot)
     metadata_columns <-
       rlang::arg_match(metadata_columns, metadata_column_names, multiple = TRUE)
-    source <-
-      match_source(source = source, network_names = ukaq_network_names)
     data_type <-
       rlang::arg_match(data_type, c("annual", "monthly"))
 
+    # work out which networks to import
+    if (is.null(code)) {
+      networks <-
+        match_source(source = source, network_names = ukaq_network_names)
+    } else {
+      networks <- pair_networks(
+        pair_code_source(code, source, ukaq_network_names),
+        ukaq_network_names
+      )
+    }
+
     # get grid of years & sources
     grid <-
-      expand.grid(year = year, source = source, stringsAsFactors = FALSE)
+      expand.grid(year = year, source = networks, stringsAsFactors = FALSE)
 
     # import data
     data <- importSummaries(
@@ -140,7 +164,7 @@ formatSummary <- function(
 
   # filter for site
   if (!is.null(code)) {
-    data <- data[tolower(data$code) %in% tolower(code), ]
+    data <- filter_code_source(data, code, source, ukaq_network_names)
   }
 
   # pivot & deal with pollutants
@@ -186,7 +210,7 @@ formatSummary <- function(
     data <-
       append_metadata_cols(
         data,
-        source = source,
+        source = unique(data$source),
         metadata_columns = metadata_columns
       )
   }
@@ -220,14 +244,6 @@ summary_url <-
 #' Import annual/monhtly summaries
 #' @noRd
 importSummaries <- function(grid, data_type, progress) {
-  # deal w/ progress opt if NA
-  if (is.na(progress)) {
-    progress <- FALSE
-    if (nrow(grid) > 1L && rlang::is_interactive()) {
-      progress <- TRUE
-    }
-  }
-
   if (progress) {
     pb <- pb_init(name = "Importing Summaries", x = nrow(grid))
     on.exit(pb_close(pb))

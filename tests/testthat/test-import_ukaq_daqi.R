@@ -222,3 +222,38 @@ test_that("colour_band can be returned without poll_band", {
   expect_false("poll_band" %in% names(out))
   expect_false(anyNA(out$colour_band))
 })
+
+test_that("codes can be pinned to a specific network", {
+  fmt <- function(code, source) {
+    formatDAQI(
+      rawDAQI,
+      pollutant = NULL,
+      code = code,
+      source = source,
+      pivot = "long",
+      append_metadata = FALSE,
+      metadata_columns = c("zagglom"),
+      daqi_columns = c("concentration")
+    )
+  }
+
+  # ABD is in both the AURN and SAQN
+  expect_equal(unique(fmt("ABD", "saqn")$source), "saqn")
+  expect_equal(unique(fmt("ABD", "aurn")$source), "aurn")
+
+  # "ukaq" picks the first network, with a warning
+  expect_warning(auto <- fmt("ABD", "ukaq"), "multiple networks")
+  expect_equal(unique(auto$source), "aurn")
+
+  # paired
+  paired <- fmt(c("ABD", "ABD0"), c("saqn", "ukaq"))
+  expect_equal(
+    unique(paired[c("code", "source")]),
+    data.frame(code = c("ABD", "ABD0"), source = "saqn"),
+    ignore_attr = TRUE
+  )
+
+  # the same code from two networks
+  both <- fmt(c("ABD", "ABD"), c("aurn", "saqn"))
+  expect_setequal(unique(both$source), c("aurn", "saqn"))
+})

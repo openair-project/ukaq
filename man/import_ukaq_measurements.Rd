@@ -15,7 +15,7 @@ import_ukaq_measurements(
   append_metadata = FALSE,
   metadata_columns = c("site_type", "latitude", "longitude"),
   pivot = "wide",
-  progress = NA,
+  progress = rlang::is_interactive(),
   ...,
   .class = NULL
 )
@@ -27,8 +27,8 @@ import_ukaq_measurements(
 
 \code{code} expects a vector of character values. It defines the specific sites
 to import will filter the result for specific sites based on their site
-codes, available through \code{\link[=import_ukaq_meta]{import_ukaq_meta()}}. Note that a mismatch between
-\code{code} and \code{source} may result in no data being imported.}
+codes, available through \code{\link[=import_ukaq_meta]{import_ukaq_meta()}}. Each code can be paired
+with a specific network using \code{source}.}
 
 \item{year}{\emph{A year, or range of years, from which to import data.}
 
@@ -38,15 +38,24 @@ codes, available through \code{\link[=import_ukaq_meta]{import_ukaq_meta()}}. No
 (\code{2020}), a selection of specific years (c(\verb{2020, 2021, 2022})), or a range
 of years (\code{2020:2025}).}
 
-\item{source}{\emph{One or more UK Monitoring networks from which to import data.}
+\item{source}{\emph{The UK monitoring network(s) from which to import data.}
 
 \emph{default:} \code{"ukaq"}
 
-The default, \code{"ukaq"}, will look for sites from any of the available
-networks. Any combination of \code{"aurn"}, \code{"aqe"}, \code{"saqn"}, \code{"waqn"},
-\code{"niaqn"} or \code{"lmam"} will \emph{only} import data from those specific
-monitoring networks. Note that a mismatch between \code{code} and \code{source} may
-result in no data being imported.}
+Each value should be one of \code{"aurn"}, \code{"aqe"}, \code{"saqn"}, \code{"waqn"},
+\code{"niaqn"}, \code{"lmam"}, or \code{"ukaq"}. \code{source} can be provided in two ways:
+\itemize{
+\item \strong{A single value}, which applies to every \code{code}. The default,
+\code{"ukaq"}, will look for each site in all of the available networks; any
+other value will \emph{only} import data from that network.
+\item \strong{A vector the same length as \code{code}}, pairing each site code with a
+network. For example, \code{code = c("MY1", "KC1", "ABD")} and \code{source =   c("aurn", "aurn", "saqn")}. \code{"ukaq"} can be used for any code whose
+network should be worked out automatically.
+}
+
+When a site is found in multiple networks under \code{"ukaq"}, the first of
+\code{"aurn"}, \code{"aqe"}, \code{"saqn"}, \code{"waqn"}, \code{"niaqn"} and \code{"lmam"} is used and a
+warning is given.}
 
 \item{data_type}{\emph{What type of summary should be returned?}
 
@@ -114,13 +123,11 @@ prefer their data in.}
 
 \item{progress}{\emph{Show a progress bar?}
 
-\emph{default:} \code{NA}
+\emph{default:} \code{rlang::is_interactive()}
 
 When \code{TRUE}, this function will print a progress bar to track individual
-files being imported. If \code{FALSE} this is suppressed. If \code{NA}, the default,
-the function will work out if a progress bar would be useful (i.e., if the
-function is being run in an interactive session and if more than one remote
-file is being accessed).}
+files being imported. If \code{FALSE} this is suppressed. By default, a progress
+bar is shown in interactive sessions only.}
 
 \item{...}{\emph{Not used.}}
 
