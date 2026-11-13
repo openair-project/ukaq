@@ -176,6 +176,28 @@ import_ukaq_measurements <-
     # filter metadata for codes
     meta_with_code <- meta[tolower(meta$code) %in% tolower(code), ]
 
+    # flag codes not found in the metadata
+    missing_codes <- code[!tolower(code) %in% tolower(meta_with_code$code)]
+    if (length(missing_codes) == length(code)) {
+      stop(
+        "None of the requested codes were found for source(s) ",
+        paste(source, collapse = ", "),
+        ": ",
+        paste(code, collapse = ", "),
+        ". See import_ukaq_meta() for valid site codes."
+      )
+    }
+    if (length(missing_codes) > 0L) {
+      warning(
+        "The following codes were not found for source(s) ",
+        paste(source, collapse = ", "),
+        " and have been skipped: ",
+        paste(missing_codes, collapse = ", "),
+        ".",
+        call. = FALSE
+      )
+    }
+
     # ensure one line per code
     meta_final <-
       do.call(
@@ -269,7 +291,39 @@ import_ukaq_measurements <-
 
     # filter pollutants
     if (!is.null(pollutant)) {
-      id_cols <- c("source", "date", "code", "site", tolower(pollutant))
+      pollutant <- tolower(pollutant)
+      missing_polls <- setdiff(pollutant, names(data))
+      if (length(missing_polls) == length(pollutant)) {
+        stop(
+          "None of the requested pollutants were found in the imported data: ",
+          paste(pollutant, collapse = ", "),
+          ". Available pollutants are: ",
+          paste(
+            setdiff(
+              names(data),
+              c("source", "date", "code", "site", "ws", "wd", "temp")
+            ),
+            collapse = ", "
+          ),
+          "."
+        )
+      }
+      if (length(missing_polls) > 0L) {
+        warning(
+          "The following pollutants were not found in the imported data and ",
+          "have been skipped: ",
+          paste(missing_polls, collapse = ", "),
+          ".",
+          call. = FALSE
+        )
+      }
+      id_cols <- c(
+        "source",
+        "date",
+        "code",
+        "site",
+        intersect(pollutant, names(data))
+      )
       for (i in c("ws", "wd", "temp")) {
         if (i %in% names(data)) {
           id_cols <- append(id_cols, i)

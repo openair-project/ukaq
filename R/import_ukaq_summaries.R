@@ -234,6 +234,11 @@ importSummaries <- function(grid, data_type, progress) {
       df
     })
 
+  # abort if there's no data
+  if (all(vapply(data, is.null, logical(1)))) {
+    stop("No data has been returned.")
+  }
+
   all_names <- lapply(data, names)
 
   data <- lapply(data, function(x) {
