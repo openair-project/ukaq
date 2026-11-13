@@ -199,29 +199,21 @@ import_ukaq_measurements <-
     }
 
     # ensure one line per code
-    meta_final <-
-      do.call(
-        rbind,
-        lapply(unique(meta_with_code$code), function(x) {
-          utils::head(meta_with_code[meta_with_code$code == x, ], n = 1L)
-        })
-      )
+    # (meta is already ordered by source preference)
+    is_dupe <- duplicated(meta_with_code$code)
+    meta_final <- meta_with_code[!is_dupe, ]
 
     # flag if there were any ambiguous codes
-    if (nrow(meta_final) < nrow(meta_with_code)) {
-      id <-
-        sapply(split(meta_with_code, ~code), function(x) {
-          nrow(x)
-        })
-      id <- names(id[id > 1])
+    if (any(is_dupe)) {
+      id <- unique(meta_with_code$code[is_dupe])
 
       warning(
-        paste0(
-          "Ambiguous Codes Detected: ",
-          id,
-          ".\nImporting sites using following order of preference: ",
-          paste(source, collapse = ", ")
-        )
+        "Ambiguous codes detected: ",
+        paste(id, collapse = ", "),
+        ".\nImporting sites using the following order of preference: ",
+        paste(source, collapse = ", "),
+        ".",
+        call. = FALSE
       )
     }
 
