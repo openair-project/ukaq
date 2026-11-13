@@ -15,16 +15,6 @@
 #'   `code` and `source` may result in no data being imported. If `NULL`, the
 #'   default, all available data for the `year` and `source` will be returned.
 #'
-#' @param source *One or more UK Monitoring networks from which to import data.*
-#'
-#'   *default:* `"aurn"`
-#'
-#'   By default, data from the AURN is imported. Any combination of `"aurn"`,
-#'   `"aqe"`, `"saqn"`, `"waqn"`, `"niaqn"` or `"lmam"` will *only* import data
-#'   from those specific monitoring networks, and `"ukaq"` will import data
-#'   from all of them. Note that a mismatch between `code` and `source` may
-#'   result in no data being imported.
-#'
 #' @param data_type *What type of summary should be returned?*
 #'
 #'   *default:* `"annual"`
@@ -161,24 +151,13 @@ formatSummary <- function(
         non_pollutant_cols <- c("source", "date", "year", "code", "site")
       }
 
-      # match exact pollutant names (e.g., "no2", "no2.mean", "no2.capture"),
-      # rather than a regex which would let "co" match "code", "no" match
-      # "no2", etc.
-      pollutant <- tolower(pollutant)
-      is_pollutant_col <- vapply(
-        names(data),
-        function(x) {
-          any(x == pollutant | startsWith(x, paste0(pollutant, ".")))
-        },
-        logical(1)
-      )
       pollutant_cols <-
-        setdiff(names(data)[is_pollutant_col], non_pollutant_cols)
+        names(data)[grepl(paste(pollutant, collapse = "|"), names(data))]
 
       data <- data[, c(non_pollutant_cols, pollutant_cols)]
     }
 
-    names(data) <- gsub(".mean", "", names(data), fixed = TRUE)
+    names(data) <- gsub(".mean", "", names(data))
   }
 
   # append metadata, if requested
@@ -255,11 +234,6 @@ importSummaries <- function(grid, data_type, progress) {
       df
     })
 
-  # abort if there's no data
-  if (all(vapply(data, is.null, logical(1)))) {
-    stop("No data has been returned.")
-  }
-
   all_names <- lapply(data, names)
 
   data <- lapply(data, function(x) {
@@ -282,7 +256,7 @@ pivot_summary_longer <- function(data) {
   data <- as.data.frame(data)
 
   names(data) <-
-    sub("2.5", "25", names(data), fixed = TRUE)
+    sub("2.5", "25", names(data))
 
   names(data) <-
     sub("o3.mean.daily.max.8hour", "o3meandailymax8hour.mean", names(data))
@@ -337,7 +311,7 @@ pivot_summary_longer <- function(data) {
 
   names(wide) <- sub("value\\.", "", names(wide))
 
-  wide$pollutant <- sub("25", "2.5", wide$pollutant, fixed = TRUE)
+  wide$pollutant <- sub("25", "2.5", wide$pollutant)
 
   return(wide)
 }

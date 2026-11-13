@@ -165,10 +165,6 @@ import_ukaq_measurements <-
     # get metadata
     meta <- import_ukaq_meta(source = source)
 
-    # drop any sources whose metadata were unavailable, so later calls to
-    # import_ukaq_meta() don't repeatedly warn about them
-    source <- source[source %in% meta$source]
-
     # order metadata by user-defined order
     meta$source <- factor(meta$source, source)
     meta <- meta[order(meta$source), ]
@@ -176,44 +172,30 @@ import_ukaq_measurements <-
     # filter metadata for codes
     meta_with_code <- meta[tolower(meta$code) %in% tolower(code), ]
 
-    # flag codes not found in the metadata
-    missing_codes <- code[!tolower(code) %in% tolower(meta_with_code$code)]
-    if (length(missing_codes) == length(code)) {
-      stop(
-        "None of the requested codes were found for source(s) ",
-        paste(source, collapse = ", "),
-        ": ",
-        paste(code, collapse = ", "),
-        ". See import_ukaq_meta() for valid site codes."
-      )
-    }
-    if (length(missing_codes) > 0L) {
-      warning(
-        "The following codes were not found for source(s) ",
-        paste(source, collapse = ", "),
-        " and have been skipped: ",
-        paste(missing_codes, collapse = ", "),
-        ".",
-        call. = FALSE
-      )
-    }
-
     # ensure one line per code
-    # (meta is already ordered by source preference)
-    is_dupe <- duplicated(meta_with_code$code)
-    meta_final <- meta_with_code[!is_dupe, ]
+    meta_final <-
+      do.call(
+        rbind,
+        lapply(unique(meta_with_code$code), function(x) {
+          utils::head(meta_with_code[meta_with_code$code == x, ], n = 1L)
+        })
+      )
 
     # flag if there were any ambiguous codes
-    if (any(is_dupe)) {
-      id <- unique(meta_with_code$code[is_dupe])
+    if (nrow(meta_final) < nrow(meta_with_code)) {
+      id <-
+        sapply(split(meta_with_code, ~code), function(x) {
+          nrow(x)
+        })
+      id <- names(id[id > 1])
 
       warning(
-        "Ambiguous codes detected: ",
-        paste(id, collapse = ", "),
-        ".\nImporting sites using the following order of preference: ",
-        paste(source, collapse = ", "),
-        ".",
-        call. = FALSE
+        paste0(
+          "Ambiguous Codes Detected: ",
+          id,
+          ".\nImporting sites using following order of preference: ",
+          paste(source, collapse = ", ")
+        )
       )
     }
 
@@ -259,7 +241,7 @@ import_ukaq_measurements <-
         }
         tryCatch(
           suppressWarnings(
-            transform(loadRData(url, object = data_type), source = m$source)
+            loadRData(url, object = data_type) |> transform(source = m$source)
           ),
           error = function(e) {
             NULL
@@ -283,39 +265,7 @@ import_ukaq_measurements <-
 
     # filter pollutants
     if (!is.null(pollutant)) {
-      pollutant <- tolower(pollutant)
-      missing_polls <- setdiff(pollutant, names(data))
-      if (length(missing_polls) == length(pollutant)) {
-        stop(
-          "None of the requested pollutants were found in the imported data: ",
-          paste(pollutant, collapse = ", "),
-          ". Available pollutants are: ",
-          paste(
-            setdiff(
-              names(data),
-              c("source", "date", "code", "site", "ws", "wd", "temp")
-            ),
-            collapse = ", "
-          ),
-          "."
-        )
-      }
-      if (length(missing_polls) > 0L) {
-        warning(
-          "The following pollutants were not found in the imported data and ",
-          "have been skipped: ",
-          paste(missing_polls, collapse = ", "),
-          ".",
-          call. = FALSE
-        )
-      }
-      id_cols <- c(
-        "source",
-        "date",
-        "code",
-        "site",
-        intersect(pollutant, names(data))
-      )
+      id_cols <- c("source", "date", "code", "site", tolower(pollutant))
       for (i in c("ws", "wd", "temp")) {
         if (i %in% names(data)) {
           id_cols <- append(id_cols, i)
@@ -350,34 +300,83 @@ import_ukaq_measurements <-
       data$id <- NULL
 
       rownames(data) <- NULL
+
+      if (append_quality_flag) {
+        meta_by_pollutant <- import_ukaq_meta(
+          source = source,
+          by_pollutant = TRUE
+        )
+        meta_by_pollutant <- meta_by_pollutant[c(
+          "source",
+          "code",
+          "pollutant",
+          "ratified_to"
+        )]
+        meta_by_pollutant <- meta_by_pollutant[
+          !is.na(meta_by_pollutant$ratified_to),
+        ]
+        meta_by_pollutant$ratified_to <- as.POSIXct(
+          meta_by_pollutant$ratified_to,
+          tz = "GMT"
+        )
+
+        data <- merge(
+          data,
+          meta_by_pollutant,
+          by = c("source", "code", "pollutant")
+        )
+
+        data$qc <- data$date <= data$ratified_to
+
+        data$ratified_to <- NULL
+      }
     }
 
-    # append ratification flags, if requested
-    if (append_quality_flag) {
-      cutoffs <- ratification_cutoffs(source)
-      cutoff_keys <- tolower(paste(cutoffs$source, cutoffs$code, sep = "\r"))
-      data_keys <- tolower(paste(data$source, data$code, sep = "\r"))
+    if (pivot == "wide" && append_quality_flag) {
+      meta_by_pollutant <- import_ukaq_meta(
+        source = source,
+        by_pollutant = TRUE
+      )
+      meta_by_pollutant <- meta_by_pollutant[c(
+        "source",
+        "code",
+        "pollutant",
+        "ratified_to"
+      )]
+      meta_by_pollutant <- meta_by_pollutant[
+        !is.na(meta_by_pollutant$ratified_to),
+      ]
+      meta_by_pollutant <- meta_by_pollutant[
+        meta_by_pollutant$pollutant %in% names(data),
+      ]
 
-      if (pivot == "long") {
-        # left join, so pollutants without a ratification date are kept (with
-        # a missing flag) rather than dropped
-        cutoff <- cutoffs$cutoff[match(
-          paste(data_keys, data$pollutant, sep = "\r"),
-          paste(cutoff_keys, cutoffs$pollutant, sep = "\r")
-        )]
-        data$qc <- data$date < cutoff
-      }
+      meta_by_pollutant$source_code <- paste(
+        meta_by_pollutant$source,
+        meta_by_pollutant$code
+      )
+      data$source_code <- paste(data$source, data$code)
+      meta_by_pollutant <- meta_by_pollutant[
+        meta_by_pollutant$source_code %in% data$source_code,
+      ]
 
-      if (pivot == "wide") {
-        for (j in intersect(unique(cutoffs$pollutant), names(data))) {
-          id <- cutoffs$pollutant == j
-          cutoff <- cutoffs$cutoff[id][match(data_keys, cutoff_keys[id])]
-          if (all(is.na(cutoff))) {
-            next
-          }
-          data[[paste0(j, "_qc")]] <- data$date < cutoff
+      newdat <- list()
+      for (i in unique(data$source_code)) {
+        meta_i <-
+          meta_by_pollutant[meta_by_pollutant$source_code == i, ]
+        meta_i$ratified_to <- as.POSIXct(meta_i$ratified_to, tz = "GMT")
+        data_i <- data[data$source_code == i, ]
+
+        for (j in unique(meta_i$pollutant)) {
+          meta_j <- meta_i[meta_i$pollutant == j, ]
+          data_i[[paste0(j, "_qc")]] <- data_i$date <= meta_j$ratified_to
         }
+
+        newdat <- append(newdat, list(data_i))
       }
+
+      data <- rbindNames(newdat)
+
+      data$source_code <- NULL
     }
 
     # append metadata, if requested
@@ -412,25 +411,4 @@ measURL <- function(source, code, year, dir = "") {
   url <- sub("DIR", dir, url)
 
   return(url)
-}
-
-#' Get the date-time before which each site-pollutant's data is ratified
-#' @noRd
-ratification_cutoffs <- function(source) {
-  meta <- import_ukaq_meta(source = source, by_pollutant = TRUE, .class = "df")
-  meta <- meta[
-    !is.na(meta$ratified_to),
-    c("source", "code", "pollutant", "ratified_to")
-  ]
-
-  # if a site lists a pollutant more than once, conservatively use the
-  # earliest ratification date
-  meta <- meta[order(meta$ratified_to), ]
-  meta <- meta[!duplicated(meta[c("source", "code", "pollutant")]), ]
-
-  # data are ratified up to the *end* of the ratified_to date
-  meta$cutoff <- as.POSIXct(format(meta$ratified_to + 1L), tz = "GMT")
-  meta$ratified_to <- NULL
-
-  meta
 }

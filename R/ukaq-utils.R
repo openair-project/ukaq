@@ -15,10 +15,9 @@ tbl_out <- function(table, .class) {
 
 #' Convenient way to load an RData file into R
 #' @param path URL to RData
-#' @param object The specific measurement `data_type` of interest. If `NULL`,
-#'   the file is expected to contain a single object, which is returned.
+#' @param object The specific object of interest, if multiple exist
 #' @noRd
-loadRData <- function(path, object = NULL) {
+loadRData <- function(path, object) {
   # nocov start
   # connect to the URL
   connection <- url(path)
@@ -26,45 +25,28 @@ loadRData <- function(path, object = NULL) {
   # disconnect from the connection
   on.exit(close.connection(connection))
 
-  # load the .RData file into its own environment, so loaded objects can't
-  # clash with local variables
-  env <- new.env(parent = emptyenv())
-  x <- load(connection, envir = env)
+  # load the .RData file
+  x <- load(connection)
 
-  # if no specific object requested, return the only object
-  if (is.null(object)) {
-    return(env[[x[1]]])
+  # if only only object, just return it
+  if (length(x) == 1L) {
+    table <- get(x)
+    return(table)
   }
 
-  # Objects are named "{CODE}_{YEAR}" (hourly) and "{CODE}_{YEAR}_{suffix}"
-  # (everything else)
-  prefix <- x[which.min(nchar(x))]
-  id <- substring(x, nchar(prefix) + 2L)
-  object_suffixes <- c(
-    "hourly" = "",
-    "daily" = "daily_mean",
-    "15_min" = "15min",
-    "8_hour" = "8hour_mean",
-    "24_hour" = "24hour_mean",
-    "daily_max_8" = "daily_max_8hour"
-  )
-
-  obj <- x[id == object_suffixes[[object]]]
-  if (length(obj) != 1L) {
-    stop("No '", object, "' data found in ", path, ".")
-  }
-  table <- env[[obj]]
-
-  # the "daily" object contains additional daily statistics (e.g.,
-  # gravimetric PM) which should be merged with the daily means
-  if (object == "daily" && "daily" %in% id) {
-    daily2 <- env[[x[id == "daily"]]]
-    table <- merge(
-      table,
-      daily2,
-      by = intersect(c("date", "site", "code"), names(daily2)),
-      all = TRUE
-    )
+  # if multiple objects, get the one they want
+  id <- x
+  id[1] <- paste0(x[1], "_hourly")
+  id <- sub("^[^_]+_[^_]+_(\\.*)", "\\1", id)
+  if (object != "daily") {
+    obj <- x[which(id == object)]
+    table <- get(obj)
+  } else {
+    table <- get(x[which(id == "daily_mean")])
+    if (exists("daily")) {
+      daily2 <- get(x[which(id == "daily")])
+      table <- merge(table, daily2, by = c("date", "site", "code"))
+    }
   }
 
   table <-
@@ -160,10 +142,7 @@ rbindNames <- function(data) {
 append_metadata_cols <- function(data, source, metadata_columns) {
   meta <- import_ukaq_meta(source = source, by_pollutant = FALSE)
   meta <- meta[c(metadata_columns, "code", "source")]
-  data_names <- names(data)
   data <- merge(data, meta, by = c("code", "source"))
-  # merge() moves the 'by' columns to the front; restore the original order
-  data <- data[c(data_names, metadata_columns)]
   return(data)
 }
 

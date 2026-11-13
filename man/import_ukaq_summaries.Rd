@@ -39,12 +39,12 @@ of years (\code{2020:2025}).}
 
 \item{source}{\emph{One or more UK Monitoring networks from which to import data.}
 
-\emph{default:} \code{"aurn"}
+\emph{default:} \code{"ukaq"}
 
-By default, data from the AURN is imported. Any combination of \code{"aurn"},
-\code{"aqe"}, \code{"saqn"}, \code{"waqn"}, \code{"niaqn"} or \code{"lmam"} will \emph{only} import data
-from those specific monitoring networks, and \code{"ukaq"} will import data
-from all of them. Note that a mismatch between \code{code} and \code{source} may
+The default, \code{"ukaq"}, will look for sites from any of the available
+networks. Any combination of \code{"aurn"}, \code{"aqe"}, \code{"saqn"}, \code{"waqn"},
+\code{"niaqn"} or \code{"lmam"} will \emph{only} import data from those specific
+monitoring networks. Note that a mismatch between \code{code} and \code{source} may
 result in no data being imported.}
 
 \item{data_type}{\emph{What type of summary should be returned?}

@@ -17,7 +17,7 @@ Imports:
     rlang
 Suggests:
     cli,
-    testthat (>= 3.1.7),
+    testthat (>= 3.0.0),
     tibble
 Config/Needs/website: openair-project/openairpkgdown
 Config/roxygen2/version: 8.1.1

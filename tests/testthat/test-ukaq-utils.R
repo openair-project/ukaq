@@ -36,7 +36,7 @@ test_that("factor conversions work", {
 
   fmtdata <- factor_to_char(testdat)
 
-  classes <- unname(sapply(fmtdata, class))
+  classes <- sapply(fmtdata, class) |> unname()
 
   expect_equal(
     classes,
