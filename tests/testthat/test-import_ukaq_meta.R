@@ -54,7 +54,7 @@ test_that("metadata is formatted", {
     tolower(names(fmtdata))
   )
 
-  colclasses <- sapply(fmtdata, class) |> unname()
+  colclasses <- unname(sapply(fmtdata, class))
 
   expect_equal(
     colclasses,
@@ -126,7 +126,7 @@ test_that("metadata is formatted", {
     )
   )
 
-  colclassesPoll <- sapply(fmtdataPoll, class) |> unname()
+  colclassesPoll <- unname(sapply(fmtdataPoll, class))
 
   expect_equal(
     colclassesPoll,

@@ -259,7 +259,7 @@ import_ukaq_measurements <-
         }
         tryCatch(
           suppressWarnings(
-            loadRData(url, object = data_type) |> transform(source = m$source)
+            transform(loadRData(url, object = data_type), source = m$source)
           ),
           error = function(e) {
             NULL
