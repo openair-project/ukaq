@@ -149,10 +149,9 @@ formatMeta <- function(meta, year = year, by_pollutant = by_pollutant) {
   meta$end_date[meta$end_date == "ongoing"] <- NA
   meta$start_date <- as.Date(meta$start_date, tz = "GMT")
   meta$end_date <- as.Date(meta$end_date, tz = "GMT")
-  if (any(!is.na(meta$ratified_to))) {
-    meta$ratified_to[meta$ratified_to == "Never"] <- NA
-    meta$ratified_to <- as.Date(meta$ratified_to, tz = "GMT")
-  }
+  meta$ratified_to <- as.character(meta$ratified_to)
+  meta$ratified_to[meta$ratified_to %in% "Never"] <- NA
+  meta$ratified_to <- as.Date(meta$ratified_to, tz = "GMT")
 
   # create zagglom column
   meta$zagglom <-
@@ -257,9 +256,12 @@ importMeta <- function(source) {
         df$provider <- df$pcode <- NA_character_
       }
       if (x == "lmam") {
-        df$ratified_to <- as.Date(NA, tz = "GMT")
+        df$ratified_to <- NA_character_
         df$local_authority <- NA_character_
       }
+      # keep a consistent type so rbind() works regardless of source order;
+      # parsed into a Date by formatMeta()
+      df$ratified_to <- as.character(df$ratified_to %||% NA)
       return(df)
     })
 
