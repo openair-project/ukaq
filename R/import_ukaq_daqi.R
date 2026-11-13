@@ -9,11 +9,12 @@
 #'
 #' @param source *One or more UK Monitoring networks from which to import data.*
 #'
-#'   *default:* `"ukaq"`
+#'   *default:* `"aurn"`
 #'
-#'   The default, `"ukaq"`, will look for sites from any of the available
-#'   networks. Any combination of `"aurn"`, `"aqe"`, `"saqn"`, `"waqn"`, or
-#'   `"niaqn"` will *only* import data from those specific monitoring networks.
+#'   By default, data from the AURN is imported. Any combination of `"aurn"`,
+#'   `"aqe"`, `"saqn"`, `"waqn"`, or `"niaqn"` will *only* import data from
+#'   those specific monitoring networks, and `"ukaq"` will import data from all
+#'   of them.
 #'   Note that a mismatch between `code` and `source` may result in no data
 #'   being imported. The DAQI is not pre-calculated for `"lmam"` sites.
 #'

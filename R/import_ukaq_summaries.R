@@ -15,6 +15,16 @@
 #'   `code` and `source` may result in no data being imported. If `NULL`, the
 #'   default, all available data for the `year` and `source` will be returned.
 #'
+#' @param source *One or more UK Monitoring networks from which to import data.*
+#'
+#'   *default:* `"aurn"`
+#'
+#'   By default, data from the AURN is imported. Any combination of `"aurn"`,
+#'   `"aqe"`, `"saqn"`, `"waqn"`, `"niaqn"` or `"lmam"` will *only* import data
+#'   from those specific monitoring networks, and `"ukaq"` will import data
+#'   from all of them. Note that a mismatch between `code` and `source` may
+#'   result in no data being imported.
+#'
 #' @param data_type *What type of summary should be returned?*
 #'
 #'   *default:* `"annual"`
