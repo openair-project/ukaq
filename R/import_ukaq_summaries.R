@@ -151,13 +151,24 @@ formatSummary <- function(
         non_pollutant_cols <- c("source", "date", "year", "code", "site")
       }
 
+      # match exact pollutant names (e.g., "no2", "no2.mean", "no2.capture"),
+      # rather than a regex which would let "co" match "code", "no" match
+      # "no2", etc.
+      pollutant <- tolower(pollutant)
+      is_pollutant_col <- vapply(
+        names(data),
+        function(x) {
+          any(x == pollutant | startsWith(x, paste0(pollutant, ".")))
+        },
+        logical(1)
+      )
       pollutant_cols <-
-        names(data)[grepl(paste(pollutant, collapse = "|"), names(data))]
+        setdiff(names(data)[is_pollutant_col], non_pollutant_cols)
 
       data <- data[, c(non_pollutant_cols, pollutant_cols)]
     }
 
-    names(data) <- gsub(".mean", "", names(data))
+    names(data) <- gsub(".mean", "", names(data), fixed = TRUE)
   }
 
   # append metadata, if requested
@@ -261,7 +272,7 @@ pivot_summary_longer <- function(data) {
   data <- as.data.frame(data)
 
   names(data) <-
-    sub("2.5", "25", names(data))
+    sub("2.5", "25", names(data), fixed = TRUE)
 
   names(data) <-
     sub("o3.mean.daily.max.8hour", "o3meandailymax8hour.mean", names(data))
@@ -316,7 +327,7 @@ pivot_summary_longer <- function(data) {
 
   names(wide) <- sub("value\\.", "", names(wide))
 
-  wide$pollutant <- sub("25", "2.5", wide$pollutant)
+  wide$pollutant <- sub("25", "2.5", wide$pollutant, fixed = TRUE)
 
   return(wide)
 }

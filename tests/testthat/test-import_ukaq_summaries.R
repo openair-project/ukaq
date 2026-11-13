@@ -209,3 +209,38 @@ test_that("we can assemble summary URLS", {
     "https://uk-air.defra.gov.uk/openair/LMAM/R_data/summary_monthly_LMAM_2020.rds"
   )
 })
+
+test_that("wide pollutant filtering uses exact names", {
+  raw <- rawSummaryAnnual
+  raw$CO.mean <- 1
+  raw$CO.capture <- 100
+
+  co <- formatSummary(
+    raw,
+    code = NULL,
+    source = c("aurn", "lmam"),
+    data_type = "annual",
+    pollutant = "co",
+    append_metadata = FALSE,
+    metadata_columns = c("latitude", "longitude"),
+    pivot = "wide"
+  )
+
+  expect_equal(
+    names(co),
+    c("source", "date", "year", "code", "site", "co", "co.capture")
+  )
+
+  no <- formatSummary(
+    raw,
+    code = NULL,
+    source = c("aurn", "lmam"),
+    data_type = "annual",
+    pollutant = "no",
+    append_metadata = FALSE,
+    metadata_columns = c("latitude", "longitude"),
+    pivot = "wide"
+  )
+
+  expect_false(any(c("no2", "nox") %in% names(no)))
+})
