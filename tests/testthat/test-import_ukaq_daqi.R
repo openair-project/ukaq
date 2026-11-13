@@ -3,6 +3,7 @@ test_that("daqi works", {
     rawDAQI,
     pollutant = NULL,
     code = NULL,
+    source = "aurn",
     pivot = "long",
     append_metadata = FALSE,
     metadata_columns = c("zagglom"),
@@ -43,6 +44,7 @@ test_that("daqi works", {
       rawDAQI,
       pollutant = c("no2", "pm10"),
       code = NULL,
+      source = "aurn",
       pivot = "long",
       append_metadata = FALSE,
       metadata_columns = c("zagglom"),
@@ -63,6 +65,7 @@ test_that("daqi works", {
       rawDAQI,
       pollutant = NULL,
       code = c("abd"),
+      source = "aurn",
       pivot = "long",
       append_metadata = FALSE,
       metadata_columns = c("zagglom"),
@@ -83,6 +86,7 @@ test_that("daqi works", {
       rawDAQI,
       pollutant = NULL,
       code = NULL,
+      source = "aurn",
       pivot = "wide",
       append_metadata = FALSE,
       metadata_columns = c("zagglom"),
@@ -99,6 +103,7 @@ test_that("daqi works", {
   expect_equal(
     names(wide),
     c(
+      "source",
       "date",
       "code",
       "site",
@@ -135,6 +140,7 @@ test_that("daqi works", {
       rawDAQI,
       pollutant = c("no2", "pm10"),
       code = NULL,
+      source = "aurn",
       pivot = "wide",
       append_metadata = FALSE,
       metadata_columns = c("zagglom"),
@@ -151,6 +157,7 @@ test_that("daqi works", {
   expect_equal(
     names(wide2),
     c(
+      "source",
       "date",
       "code",
       "site",

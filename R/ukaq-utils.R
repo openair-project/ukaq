@@ -160,7 +160,10 @@ rbindNames <- function(data) {
 append_metadata_cols <- function(data, source, metadata_columns) {
   meta <- import_ukaq_meta(source = source, by_pollutant = FALSE)
   meta <- meta[c(metadata_columns, "code", "source")]
+  data_names <- names(data)
   data <- merge(data, meta, by = c("code", "source"))
+  # merge() moves the 'by' columns to the front; restore the original order
+  data <- data[c(data_names, metadata_columns)]
   return(data)
 }
 

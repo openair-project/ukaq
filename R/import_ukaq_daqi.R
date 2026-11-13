@@ -103,6 +103,7 @@ import_ukaq_daqi <-
         daqi = daqi,
         pollutant = pollutant,
         code = code,
+        source = source,
         pivot = pivot,
         append_metadata = append_metadata,
         metadata_columns = metadata_columns,
@@ -169,6 +170,7 @@ formatDAQI <- function(
   daqi,
   pollutant,
   code,
+  source,
   pivot,
   append_metadata,
   metadata_columns,
@@ -249,9 +251,16 @@ pivotDAQI <- function(daqi, opts) {
 
   daqi <-
     stats::reshape(
-      as.data.frame(daqi)[c("date", "code", "site", "pollutant", opts)],
+      as.data.frame(daqi)[c(
+        "source",
+        "date",
+        "code",
+        "site",
+        "pollutant",
+        opts
+      )],
       timevar = "pollutant",
-      idvar = c("date", "code", "site"),
+      idvar = c("source", "date", "code", "site"),
       direction = "wide",
       v.names = opts,
       sep = "_"
