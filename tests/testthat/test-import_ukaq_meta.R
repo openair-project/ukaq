@@ -137,3 +137,22 @@ test_that("metadata is formatted", {
     )
   )
 })
+
+test_that("unavailable metadata sources are skipped with a warning", {
+  local_mocked_bindings(
+    loadRData = function(path, ...) {
+      if (grepl("AQE", path)) {
+        stop("unavailable")
+      }
+      data.frame(site_id = "ABC", parameter = "NO2")
+    }
+  )
+
+  expect_warning(
+    meta <- importMeta(c("aurn", "aqe")),
+    "aqe"
+  )
+  expect_equal(meta$source, "aurn")
+
+  expect_error(importMeta("aqe"), "any of the requested sources")
+})

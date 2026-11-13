@@ -240,7 +240,13 @@ meta_url <- function(source) {
 importMeta <- function(source) {
   meta <-
     lapply(source, function(x) {
-      df <- loadRData(meta_url(x))
+      df <- tryCatch(
+        suppressWarnings(loadRData(meta_url(x))),
+        error = function(e) NULL
+      )
+      if (is.null(df)) {
+        return(NULL)
+      }
       df$source <- tolower(x)
       if (x != "lmam") {
         df$provider <- df$pcode <- NA_character_
@@ -251,6 +257,25 @@ importMeta <- function(source) {
       }
       return(df)
     })
+
+  # warn about (or fail on) networks whose metadata could not be loaded
+  failed <- source[vapply(meta, is.null, logical(1))]
+  if (length(failed) == length(source)) {
+    stop(
+      "Metadata could not be imported for any of the requested sources: ",
+      paste(source, collapse = ", "),
+      "."
+    )
+  }
+  if (length(failed) > 0L) {
+    warning(
+      "Metadata could not be imported for the following source(s), ",
+      "which have been skipped: ",
+      paste(failed, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
 
   meta <- do.call(rbind, meta)
 

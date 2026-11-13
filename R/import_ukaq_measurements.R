@@ -165,6 +165,10 @@ import_ukaq_measurements <-
     # get metadata
     meta <- import_ukaq_meta(source = source)
 
+    # drop any sources whose metadata were unavailable, so later calls to
+    # import_ukaq_meta() don't repeatedly warn about them
+    source <- source[source %in% meta$source]
+
     # order metadata by user-defined order
     meta$source <- factor(meta$source, source)
     meta <- meta[order(meta$source), ]
